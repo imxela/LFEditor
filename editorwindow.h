@@ -31,18 +31,15 @@ private:
     QSharedPointer<QFile> m_currentFile;
 
 private slots:
-    void about();
-    void preferences();
-    void open();
+    void openAbout();
+    void openPreferences();
+    void openFile();
 
-    void fileReadStarted();
-    void fileReadFinished(qint32 bytesRead, QByteArray* bytes);
+    void onClickedGoToBlockButton();
 
-    void reloadPreferences(int code);
+    void onFileReadStarted();
+    void onFileReadFinished(qint32 bytesRead, QByteArray* bytes);
 
-    void goToBlockButtonClicked();
-    void goToNextBlockButtonClicked();
-    void goToPreviousBlockButtonClicked();
-
+    void onPreferencesChanged();
 };
 #endif // EDITORWINDOW_H

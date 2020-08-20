@@ -22,35 +22,34 @@ EditorWindow::EditorWindow(QWidget *parent)
 
     ui->goToBlockSpinBox->setValue(0); // First block/page
 
-    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
-    connect(ui->actionPreferences, SIGNAL(triggered()), this, SLOT(preferences()));
-    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(open()));
+    connect(ui->actionAbout, &QAction::triggered, this, &EditorWindow::openAbout);
+    connect(ui->actionPreferences, &QAction::triggered, this, &EditorWindow::openPreferences);
+    connect(ui->actionOpen, &QAction::triggered, this, &EditorWindow::openFile);
 
-    connect(ui->goToBlockButton, SIGNAL(clicked()), this, SLOT(goToBlockButtonClicked()));
-    connect(ui->nextBlockButton, SIGNAL(clicked()), this, SLOT(goToNextBlockButtonClicked()));
-    connect(ui->previousBlockButton, SIGNAL(clicked()), this, SLOT(goToPreviousBlockButtonClicked()));
+    connect(ui->goToBlockButton, &QPushButton::clicked, this, &EditorWindow::onClickedGoToBlockButton);
+
+    connect(
+        ui->nextBlockButton, &QPushButton::clicked,
+
+        [this]() {
+            goToBlock(ui->goToBlockSpinBox->value() + 1);
+        }
+    );
+
+    connect(
+        ui->previousBlockButton, &QPushButton::clicked,
+
+        [this]() {
+            if (ui->goToBlockSpinBox->value() == 0) return;
+            goToBlock(ui->goToBlockSpinBox->value() - 1);
+        }
+    );
 
     ui->fileProgress->setVisible(false);
 
-    reloadPreferences(0); // We have to manually reload preferences here to initialize them
+    onPreferencesChanged(); // We have to manually simulate a preference change here to initialize them
 
     m_currentBlock = ui->goToBlockSpinBox->value();
-}
-
-void EditorWindow::goToBlockButtonClicked()
-{
-    goToBlock(ui->goToBlockSpinBox->value());
-}
-
-void EditorWindow::goToNextBlockButtonClicked()
-{
-    goToBlock(ui->goToBlockSpinBox->value() + 1);
-}
-
-void EditorWindow::goToPreviousBlockButtonClicked()
-{
-    if (ui->goToBlockSpinBox->value() == 0) return;
-    goToBlock(ui->goToBlockSpinBox->value() - 1);
 }
 
 EditorWindow::~EditorWindow()
@@ -58,7 +57,7 @@ EditorWindow::~EditorWindow()
     delete ui;
 }
 
-void EditorWindow::about()
+void EditorWindow::openAbout()
 {
     QMessageBox::about(this, "About LFEditor", "<b>LFEditor</b> is a Large-File editor, meaning it specializes in viewing and editing large files. "
                                                "Most other text editors are unable to open large files at all, which this program aims to solve. "
@@ -70,46 +69,16 @@ void EditorWindow::about()
     QMessageBox::aboutQt(this);
 }
 
-void EditorWindow::preferences()
+void EditorWindow::openPreferences()
 {
     PreferencesDialog preferencesDialog;
 
-    connect(&preferencesDialog, SIGNAL(reloadPreferences(int)), this, SLOT(reloadPreferences(int)));
+    connect(&preferencesDialog, &PreferencesDialog::onPreferencesChanged, this, &EditorWindow::onPreferencesChanged);
 
     preferencesDialog.exec();
 }
 
-void EditorWindow::reloadPreferences(int code)
-{
-    if (code < 0) return; // User didn't save changes, so we don't need to reload
-
-    int wrapModeInt = PreferenceManager::getInstance().wordWrapMode;
-    QTextOption::WrapMode wordWrap;
-
-    switch (wrapModeInt)
-    {
-    case 0:
-        wordWrap = QTextOption::WrapMode::NoWrap;
-        break;
-
-    case 1:
-        wordWrap = QTextOption::WrapMode::WordWrap;
-        break;
-
-    case 2:
-        wordWrap = QTextOption::WrapMode::WrapAnywhere;
-        break;
-    case 3:
-        wordWrap = QTextOption::WrapMode::WrapAtWordBoundaryOrAnywhere;
-        break;
-
-    }
-
-    qDebug() << "Reloading preferences";
-    ui->fileEdit->setWordWrapMode(wordWrap);
-}
-
-void EditorWindow::open()
+void EditorWindow::openFile()
 {
     // Reset block/page to 0 when opening a new file. Todo: Create a 'setCurrentBlock(quint64)' method for this
     // since it is also used in the constructor for initialization.
@@ -136,35 +105,12 @@ void EditorWindow::open()
     }
 }
 
-void EditorWindow::load(quint64 from, quint64 to)
+void EditorWindow::onClickedGoToBlockButton()
 {
-    ui->fileProgress->setVisible(true);
-    ui->fileProgress->reset();
-
-    // int blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
-
-    QThread* thread = new QThread(this); // Memory leak? or does connect(...deleteLater()) fix that?
-    FileReadWorker* worker = new FileReadWorker();
-
-    worker->moveToThread(thread);
-
-    connect(worker, SIGNAL(finished(qint32, QByteArray*)), this, SLOT(fileReadFinished(qint32, QByteArray*)));
-    connect(thread, &QThread::started, worker, [worker, this, from = from, to = to] { worker->readFile(m_currentFile.data(), from, to); } );
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    connect(worker, SIGNAL(readyForDelete()), worker, SLOT(deleteLater()));
-
-    fileReadStarted();
-
-    thread->start();
+    goToBlock(ui->goToBlockSpinBox->value());
 }
 
-void EditorWindow::loadBlock(quint64 blockIndex)
-{
-    quint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
-    load(byteSize * blockIndex, byteSize * (blockIndex + 1)); // Load starting at the current block to the next one, aka load 1 block
-}
-
-void EditorWindow::fileReadStarted()
+void EditorWindow::onFileReadStarted()
 {
     qDebug() << "fileReadStarted()";
     ui->fileProgress->setVisible(true);
@@ -172,7 +118,7 @@ void EditorWindow::fileReadStarted()
     ui->fileEdit->setPlaceholderText("Loading file, please wait...");
 }
 
-void EditorWindow::fileReadFinished(qint32 bytesRead, QByteArray* bytes)
+void EditorWindow::onFileReadFinished(qint32 bytesRead, QByteArray* bytes)
 {
 
     ui->fileEdit->setPlaceholderText("No file loaded...");
@@ -191,6 +137,60 @@ void EditorWindow::fileReadFinished(qint32 bytesRead, QByteArray* bytes)
 
     qDebug() << "File read finished!";
     ui->fileProgress->setVisible(false);
+}
+
+void EditorWindow::onPreferencesChanged()
+{
+    int wrapModeInt = PreferenceManager::getInstance().wordWrapMode;
+    QTextOption::WrapMode wordWrap;
+
+    switch (wrapModeInt)
+    {
+    case 0:
+        wordWrap = QTextOption::WrapMode::NoWrap;
+        break;
+
+    case 1:
+        wordWrap = QTextOption::WrapMode::WordWrap;
+        break;
+
+    case 2:
+        wordWrap = QTextOption::WrapMode::WrapAnywhere;
+        break;
+    case 3:
+        wordWrap = QTextOption::WrapMode::WrapAtWordBoundaryOrAnywhere;
+        break;
+
+    }
+
+    qDebug() << "Reloading preferences";
+    ui->fileEdit->setWordWrapMode(wordWrap);
+}
+
+void EditorWindow::load(quint64 from, quint64 to)
+{
+    ui->fileProgress->setVisible(true);
+    ui->fileProgress->reset();
+
+    QThread* thread = new QThread(this); // Memory leak? or does connect(...deleteLater()) fix that?
+    FileReadWorker* worker = new FileReadWorker();
+
+    worker->moveToThread(thread);
+
+    connect(worker, &FileReadWorker::finished, this, &EditorWindow::onFileReadFinished);
+    connect(thread, &QThread::started, worker, [worker, this, from = from, to = to] { worker->readFile(m_currentFile.data(), from, to); } );
+    connect(thread, &QThread::finished, thread, &FileReadWorker::deleteLater);
+    connect(worker, &FileReadWorker::readyForDelete, worker, &FileReadWorker::deleteLater);
+
+    onFileReadStarted();
+
+    thread->start();
+}
+
+void EditorWindow::loadBlock(quint64 blockIndex)
+{
+    quint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
+    load(byteSize * blockIndex, byteSize * (blockIndex + 1)); // Load starting at the current block to the next one, aka load 1 block
 }
 
 void EditorWindow::goToBlock(uint64_t blockIndex)

@@ -9,8 +9,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(btnSave()));
-    connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(btnCancel()));
+    connect(ui->saveButton, &QPushButton::clicked, this, &PreferencesDialog::onClickedSaveButton);
+    connect(ui->cancelButton, &QPushButton::clicked, this, &PreferencesDialog::onClickedCancelButton);
 
     ui->blockSizeSpinBox->setValue(PreferenceManager::getInstance().blockSize);
     ui->wrapModeComboBox->setCurrentIndex(PreferenceManager::getInstance().wordWrapMode);
@@ -24,19 +24,17 @@ PreferencesDialog::~PreferencesDialog()
     delete ui;
 }
 
-void PreferencesDialog::btnSave()
+void PreferencesDialog::onClickedSaveButton()
 {
     PreferenceManager::getInstance().blockSize = ui->blockSizeSpinBox->value();
     PreferenceManager::getInstance().wordWrapMode = ui->wrapModeComboBox->currentIndex();
 
-    emit reloadPreferences(0);
+    emit onPreferencesChanged();
 
     close();
 }
 
-void PreferencesDialog::btnCancel()
+void PreferencesDialog::onClickedCancelButton()
 {
-    emit reloadPreferences(-1);
-
     close();
 }

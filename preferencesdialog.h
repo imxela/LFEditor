@@ -19,11 +19,11 @@ private:
     Ui::PreferencesDialog *ui;
 
 private slots:
-    void btnSave();
-    void btnCancel();
+    void onClickedSaveButton();
+    void onClickedCancelButton();
 
 signals:
-    void reloadPreferences(int code);
+    void onPreferencesChanged();
 
 };
 
