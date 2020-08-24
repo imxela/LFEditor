@@ -36,8 +36,7 @@ void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
         m_bytes->data()[i] = fileContent.data()[i];
     }
 
-    if (static_cast<qint32>(m_blockSize) > bytesRead)
-        m_bytes->resize(bytesRead); // We can resize the array here, no reason to have unused elements
+    m_bytes->resize(bytesRead); // We can resize the array here, no reason to have unused elements
 
     // Emits < 0 on fail
     emit finished(bytesRead, m_bytes);

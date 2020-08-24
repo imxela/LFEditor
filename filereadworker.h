@@ -21,7 +21,6 @@ signals:
     void readyForDelete();
 
 private:
-    quint64 m_blockSize;
     QByteArray* m_bytes;
 
 };
