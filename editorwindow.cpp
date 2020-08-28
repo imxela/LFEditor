@@ -202,6 +202,8 @@ void EditorWindow::goToBlock(uint64_t blockIndex)
     qDebug() << "Going to block: " << QString::number(blockIndex);
 
     loadBlock(blockIndex);
+    if (!m_currentFile.isNull())
+        loadBlock(blockIndex);
 }
 
 void EditorWindow::closeEvent(QCloseEvent *event)
