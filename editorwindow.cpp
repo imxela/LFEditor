@@ -22,6 +22,7 @@ EditorWindow::EditorWindow(QWidget *parent)
 
     ui->goToBlockSpinBox->setValue(0); // First block/page
 
+    connect(ui->actionExit, &QAction::triggered, this, [this] { this->close(); } );
     connect(ui->actionAbout, &QAction::triggered, this, &EditorWindow::openAbout);
     connect(ui->actionPreferences, &QAction::triggered, this, &EditorWindow::openPreferences);
     connect(ui->actionOpen, &QAction::triggered, this, &EditorWindow::openFile);
