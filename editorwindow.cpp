@@ -201,7 +201,8 @@ void EditorWindow::goToBlock(uint64_t blockIndex)
     ui->previousBlockButton->setEnabled(m_currentBlock != 0); // Disable the "previous block" button if we are on the first block
     qDebug() << "Going to block: " << QString::number(blockIndex);
 
-    loadBlock(blockIndex);
+    if (!m_currentFile.isNull())
+        loadBlock(blockIndex);
 }
 
 void EditorWindow::closeEvent(QCloseEvent *event)
