@@ -49,8 +49,7 @@ EditorWindow::EditorWindow(QWidget *parent)
     ui->fileProgress->setVisible(false);
 
     onPreferencesChanged(); // We have to manually simulate a preference change here to initialize them
-
-    m_currentBlock = ui->goToBlockSpinBox->value();
+    goToBlock(0); // Does some initialization
 }
 
 EditorWindow::~EditorWindow()
@@ -199,6 +198,7 @@ void EditorWindow::goToBlock(uint64_t blockIndex)
     ui->goToBlockSpinBox->setValue(blockIndex);
     m_currentBlock = blockIndex;
 
+    ui->previousBlockButton->setEnabled(m_currentBlock != 0); // Disable the "previous block" button if we are on the first block
     qDebug() << "Going to block: " << QString::number(blockIndex);
 
     loadBlock(blockIndex);
