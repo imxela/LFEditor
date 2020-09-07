@@ -23,6 +23,11 @@ EditorWindow::EditorWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    QMessageBox::warning(this, "Warning - Loss of data", "This software is at an early stage of development. "
+                                          "Loss of data is possible and should be expected. "
+                                          "Making backups of any and all files you open in this software is therefore highly recommended."
+                         );
+    
     hasUnsavedChanges = false;
     
     ui->goToBlockSpinBox->setValue(0); // First block/page
