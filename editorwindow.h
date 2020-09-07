@@ -33,6 +33,7 @@ private:
     QSharedPointer<QFile> m_currentFile;
     
     bool simpleWrite;
+    bool hasUnsavedChanges;
 
 private slots:
     void openAbout();
@@ -50,6 +51,8 @@ private slots:
     void onFileWriteFinished();
     void onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
 
+    void onTextEdited(bool modified);
+    
     void onPreferencesChanged();
 };
 #endif // EDITORWINDOW_H

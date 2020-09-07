@@ -23,6 +23,8 @@ EditorWindow::EditorWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    hasUnsavedChanges = false;
+    
     ui->goToBlockSpinBox->setValue(0); // First block/page
 
     connect(ui->actionExit, &QAction::triggered, this, [this] { this->close(); } );
@@ -32,6 +34,8 @@ EditorWindow::EditorWindow(QWidget *parent)
     connect(ui->actionSave, &QAction::triggered, this, &EditorWindow::openSave);
 
     connect(ui->goToBlockButton, &QPushButton::clicked, this, &EditorWindow::onClickedGoToBlockButton);
+    
+    connect(ui->fileEdit, &QPlainTextEdit::modificationChanged, this, &EditorWindow::onTextEdited);
 
     connect(
         ui->nextBlockButton, &QPushButton::clicked,
@@ -58,7 +62,7 @@ EditorWindow::EditorWindow(QWidget *parent)
 
 EditorWindow::~EditorWindow()
 {
-    if (m_currentFile != nullptr)
+    if (!m_currentFile.isNull())
         m_currentFile->close();
     
     delete ui;
@@ -167,6 +171,8 @@ void EditorWindow::onFileWriteStarted()
 void EditorWindow::onFileWriteFinished()
 {
     ui->fileProgress->setVisible(false);
+    hasUnsavedChanges = false; // Changed have been saved
+    setWindowTitle(QString("LFEditor [ %1 ]").arg(m_currentFile->fileName()));
     
     // Reload the current block to see the changes made to the file
     loadBlock(m_currentBlock);
@@ -178,6 +184,23 @@ void EditorWindow::onFileWriteError(const QString& title, const QString& descrip
     QString text("%1\nReason: %2\nCode: 0x%3");
     text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper());
     QMessageBox::critical(this, title, text);
+}
+
+void EditorWindow::onTextEdited(bool modified)
+{
+    if (!m_currentFile.isNull())
+    {
+        hasUnsavedChanges = modified;
+        
+        if (modified)
+        {
+            setWindowTitle(QString("LFEditor [ %1* ]").arg(m_currentFile->fileName()));
+        }
+        else
+        {
+            setWindowTitle(QString("LFEditor [ %1 ]").arg(m_currentFile->fileName()));
+        }
+    }
 }
 
 void EditorWindow::onPreferencesChanged()
@@ -234,6 +257,17 @@ void EditorWindow::load(quint64 from, quint64 to)
 
 void EditorWindow::loadBlock(quint64 blockIndex)
 {
+    if (hasUnsavedChanges)
+    {
+        QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Unsaved Changes",
+                                                                tr("You have unsaved changes in your current block, are you sure you want to load a new block?\n"),
+                                                                QMessageBox::No | QMessageBox::Yes,
+                                                                QMessageBox::No);
+        if (resBtn == QMessageBox::No) {
+            return;
+        }
+    }
+    
     quint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
     load(byteSize * blockIndex, byteSize * (blockIndex + 1)); // Load starting at the current block to the next one, aka load 1 block
 }
@@ -285,15 +319,18 @@ void EditorWindow::goToBlock(uint64_t blockIndex)
 // Todo: Only ask if the user wants to quit if they have unsaved changes
 void EditorWindow::closeEvent(QCloseEvent *event)
 {
-    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "LFEditor",
-                                                                tr("Are you sure you want to exit?\n"),
+    if (hasUnsavedChanges)
+    {
+        QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Unsaved Changes",
+                                                                tr("You have unsaved changes in your current block, are you sure you want to exit?\n"),
                                                                 QMessageBox::No | QMessageBox::Yes,
-                                                                QMessageBox::Yes);
-    if (resBtn != QMessageBox::Yes) {
-        event->ignore();
-    } else {
-        PreferenceManager::getInstance().savePreferences();
+                                                                QMessageBox::No);
+        if (resBtn != QMessageBox::Yes) {
+            event->ignore();
+        } else {
+            PreferenceManager::getInstance().savePreferences();
         
-        event->accept();
+            event->accept();
+        }
     }
 }
