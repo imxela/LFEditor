@@ -14,12 +14,16 @@ FileReadWorker::~FileReadWorker()
 
 }
 
+void FileReadWorker::sendError(const QString &title, const QString &description, const QString& errorString, qint64 errorCode)
+{
+    emit error(title, description, errorString, errorCode);
+}
+
 void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
 {
-
     qint64 bytesToRead = to - from;
     QScopedPointer<char> fileContent(new char[bytesToRead]);
-    m_bytes = new QByteArray(bytesToRead, '\0'); // Fill with null-terminator for now
+    m_bytes = new QByteArray(bytesToRead, ' '); // Fill with null-terminator for now
 
     qDebug() << "Reading " << QString::number(bytesToRead) << " bytes";
 
@@ -27,18 +31,22 @@ void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
     qint64 bytesRead = file->read(fileContent.data(), bytesToRead);
     if (bytesRead < 0)
     {
-        qDebug() << "Failed to read file '" << file->fileName() << "': " << file->error();
-        // QMessageBox::critical(this, "File Error", QString("Failed to read file '%l'.\nReason: %l").arg(fileName, file.error()));
+        QString errorDescription("Failed to read file: '%1'.");
+        errorDescription.arg(file->fileName());
+
+        sendError("File read error", errorDescription, file->errorString(), file->error());
+        return;
     }
 
-    for (int i = 0; i < m_bytes->size(); i++)
+    for (int i = 0; i < m_bytes->count(); i++)
     {
         m_bytes->data()[i] = fileContent.data()[i];
     }
 
+    // Todo: Move the resize to before the for-loop, I'm looping over thousands
+    //       of elements unnecessairly.
     m_bytes->resize(bytesRead); // We can resize the array here, no reason to have unused elements
 
-    // Emits < 0 on fail
     emit finished(bytesRead, m_bytes);
     emit readyForDelete();
 

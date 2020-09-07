@@ -22,6 +22,8 @@ public:
     void load(quint64 from, quint64 to);
     void loadBlock(quint64 blockIndex);
 
+    void save(quint64 from);
+
     void goToBlock(uint64_t blockIndex);
 
 private:
@@ -29,16 +31,24 @@ private:
 
     uint64_t m_currentBlock;
     QSharedPointer<QFile> m_currentFile;
+    
+    bool simpleWrite;
 
 private slots:
     void openAbout();
     void openPreferences();
     void openFile();
+    void openSave();
+    void openSaveAs();
 
     void onClickedGoToBlockButton();
 
     void onFileReadStarted();
     void onFileReadFinished(qint32 bytesRead, QByteArray* bytes);
+
+    void onFileWriteStarted();
+    void onFileWriteFinished();
+    void onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
 
     void onPreferencesChanged();
 };

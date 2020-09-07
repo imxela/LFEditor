@@ -3,6 +3,8 @@
 
 #include "preferencemanager.h"
 
+#include <QMessageBox>
+
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
@@ -12,8 +14,22 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     connect(ui->saveButton, &QPushButton::clicked, this, &PreferencesDialog::onClickedSaveButton);
     connect(ui->cancelButton, &QPushButton::clicked, this, &PreferencesDialog::onClickedCancelButton);
 
-    ui->blockSizeSpinBox->setValue(PreferenceManager::getInstance().blockSize);
-    ui->wrapModeComboBox->setCurrentIndex(PreferenceManager::getInstance().wordWrapMode);
+    PreferenceManager& mgr = PreferenceManager::getInstance();
+    ui->blockSizeSpinBox->setValue(mgr.blockSize);
+    ui->wrapModeComboBox->setCurrentIndex(mgr.wordWrapMode);
+    ui->writeModeComboBox->setCurrentIndex(mgr.writeMode);
+    
+    connect(ui->writeModeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) { 
+        if (index == 0)
+        {
+            QMessageBox::warning(this, "Warning", "Warning: The simple file-saving mode does not support removal of characters. "
+                                                  "It can only overwrite existing characters! For such an action, complex mode is required!");
+        }
+        else if (index == 1)
+        {
+            QMessageBox::warning(this, "Warning", "Warning: Complex file-saving has not yet been implemented and will not work!");
+        }
+    });
 
     // Disables the help (?) next to the close button (X), not sure if this can be done directly on QtDesigner.
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -26,8 +42,10 @@ PreferencesDialog::~PreferencesDialog()
 
 void PreferencesDialog::onClickedSaveButton()
 {
-    PreferenceManager::getInstance().blockSize = ui->blockSizeSpinBox->value();
-    PreferenceManager::getInstance().wordWrapMode = ui->wrapModeComboBox->currentIndex();
+    PreferenceManager& mgr = PreferenceManager::getInstance();
+    mgr.blockSize = ui->blockSizeSpinBox->value();
+    mgr.wordWrapMode = ui->wrapModeComboBox->currentIndex();
+    mgr.writeMode = ui->writeModeComboBox->currentIndex();
 
     emit onPreferencesChanged();
 

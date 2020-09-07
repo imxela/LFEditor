@@ -7,12 +7,15 @@
 #include <QCloseEvent>
 #include <QThread>
 #include <QSignalMapper>
+#include <QSharedPointer>
 
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 
 #include "preferencemanager.h"
+
 #include "filereadworker.h"
+#include "filewriteworker.h"
 
 EditorWindow::EditorWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -26,6 +29,7 @@ EditorWindow::EditorWindow(QWidget *parent)
     connect(ui->actionAbout, &QAction::triggered, this, &EditorWindow::openAbout);
     connect(ui->actionPreferences, &QAction::triggered, this, &EditorWindow::openPreferences);
     connect(ui->actionOpen, &QAction::triggered, this, &EditorWindow::openFile);
+    connect(ui->actionSave, &QAction::triggered, this, &EditorWindow::openSave);
 
     connect(ui->goToBlockButton, &QPushButton::clicked, this, &EditorWindow::onClickedGoToBlockButton);
 
@@ -54,6 +58,9 @@ EditorWindow::EditorWindow(QWidget *parent)
 
 EditorWindow::~EditorWindow()
 {
+    if (m_currentFile != nullptr)
+        m_currentFile->close();
+    
     delete ui;
 }
 
@@ -97,12 +104,23 @@ void EditorWindow::openFile()
         if (!m_currentFile->open(QIODevice::ReadWrite))
         {
             qDebug() << "Failed to open file '" << fileName << "': " << m_currentFile->error();
-            QMessageBox::critical(this, "File Error", QString("Failed to load file '%l'.\nReason: %l").arg(fileName, m_currentFile->error()));
+            QMessageBox::critical(this, "File Error", QString("Failed to open file '%l'.\nReason: %l").arg(fileName, m_currentFile->error()));
             return;
         }
 
         loadBlock(m_currentBlock);
     }
+}
+
+void EditorWindow::openSave()
+{
+    quint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
+    save(byteSize * m_currentBlock);
+}
+
+void EditorWindow::openSaveAs()
+{
+
 }
 
 void EditorWindow::onClickedGoToBlockButton()
@@ -125,7 +143,7 @@ void EditorWindow::onFileReadFinished(qint32 bytesRead, QByteArray* bytes)
 
     if (bytesRead >= 0)
     {
-        ui->fileEdit->setPlainText(bytes->data()); // This is slow and blocking, ProgressBar needs to animate during this somehow!
+        ui->fileEdit->setPlainText(bytes->data());
     }
     else
     {
@@ -139,9 +157,33 @@ void EditorWindow::onFileReadFinished(qint32 bytesRead, QByteArray* bytes)
     ui->fileProgress->setVisible(false);
 }
 
+void EditorWindow::onFileWriteStarted()
+{
+    qDebug() << "fileWriteStarted()";
+    ui->fileProgress->setVisible(true);
+    ui->fileProgress->reset();
+}
+
+void EditorWindow::onFileWriteFinished()
+{
+    ui->fileProgress->setVisible(false);
+    
+    // Reload the current block to see the changes made to the file
+    loadBlock(m_currentBlock);
+}
+
+// Todo: Maybe emit an error code in finished() and do this there instead?
+void EditorWindow::onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
+{
+    QString text("%1\nReason: %2\nCode: 0x%3");
+    text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper());
+    QMessageBox::critical(this, title, text);
+}
+
 void EditorWindow::onPreferencesChanged()
 {
-    int wrapModeInt = PreferenceManager::getInstance().wordWrapMode;
+    PreferenceManager& mgr = PreferenceManager::getInstance();
+    int wrapModeInt = mgr.wordWrapMode;
     QTextOption::WrapMode wordWrap;
 
     switch (wrapModeInt)
@@ -162,6 +204,9 @@ void EditorWindow::onPreferencesChanged()
         break;
 
     }
+    
+    int writeModeInt = mgr.writeMode;
+    simpleWrite = writeModeInt == 0;
 
     qDebug() << "Reloading preferences";
     ui->fileEdit->setWordWrapMode(wordWrap);
@@ -193,18 +238,51 @@ void EditorWindow::loadBlock(quint64 blockIndex)
     load(byteSize * blockIndex, byteSize * (blockIndex + 1)); // Load starting at the current block to the next one, aka load 1 block
 }
 
+void EditorWindow::save(quint64 from)
+{
+    ui->fileProgress->setVisible(true);
+    ui->fileProgress->reset();
+
+    QThread* thread = new QThread(this); // Memory leak? or does connect(...deleteLater()) fix that?
+    FileWriteWorker* worker = new FileWriteWorker();
+
+    worker->moveToThread(thread);
+
+    connect(worker, &FileWriteWorker::finished, this, &EditorWindow::onFileWriteFinished);
+    connect(worker, &FileWriteWorker::error, this, &EditorWindow::onFileWriteError);
+    
+    QByteArray bytes(ui->fileEdit->toPlainText().toUtf8());
+    quint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
+    
+    connect(
+                thread, &QThread::started, worker, 
+                [worker, this, bytes = bytes, from = from, blockSize = blockSize, simpleWrite = simpleWrite] { 
+                    worker->writeFile(m_currentFile.data(), from, bytes, blockSize, simpleWrite); 
+                } 
+    );
+    
+    connect(thread, &QThread::finished, thread, &FileWriteWorker::deleteLater);
+    connect(worker, &FileWriteWorker::readyForDelete, worker, &FileWriteWorker::deleteLater);
+
+    onFileWriteStarted();
+
+    thread->start();
+}
+
 void EditorWindow::goToBlock(uint64_t blockIndex)
 {
     ui->goToBlockSpinBox->setValue(blockIndex);
     m_currentBlock = blockIndex;
 
     ui->previousBlockButton->setEnabled(m_currentBlock != 0); // Disable the "previous block" button if we are on the first block
+
     qDebug() << "Going to block: " << QString::number(blockIndex);
 
     if (!m_currentFile.isNull())
         loadBlock(blockIndex);
 }
 
+// Todo: Only ask if the user wants to quit if they have unsaved changes
 void EditorWindow::closeEvent(QCloseEvent *event)
 {
     QMessageBox::StandardButton resBtn = QMessageBox::question( this, "LFEditor",
@@ -215,7 +293,7 @@ void EditorWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     } else {
         PreferenceManager::getInstance().savePreferences();
-
+        
         event->accept();
     }
 }

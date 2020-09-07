@@ -1,31 +1,29 @@
-#ifndef FILEREADWORKER_H
-#define FILEREADWORKER_H
+#ifndef FILEWRITEWORKER_H
+#define FILEWRITEWORKER_H
 
 #include <QObject>
-#include <QByteArray>
 #include <QFile>
+#include <QSharedPointer>
+#include <QByteArray>
 
-class FileReadWorker : public QObject
+class FileWriteWorker : public QObject
 {
     Q_OBJECT
 
 public:
-    FileReadWorker();
-    virtual ~FileReadWorker();
+    FileWriteWorker();
+    virtual ~FileWriteWorker();
     
     void sendError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
 
 public slots:
-    void readFile(QFile* file, qint64 from, qint64 to);
+    void writeFile(QFile* file, qint64 from, QByteArray bytes, quint64 blockSize, bool simpleWrite);
 
 signals:
-    void finished(qint32 bytesRead, QByteArray* bytes);
+    void finished();
     void error(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
     void readyForDelete();
 
-private:
-    QByteArray* m_bytes;
-
 };
 
-#endif // FILEREADWORKER_H
+#endif // FILEWRITEWORKER_H

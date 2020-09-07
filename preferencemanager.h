@@ -15,6 +15,7 @@ public:
 
     int blockSize;
     int wordWrapMode;
+    int writeMode;
 
 private:
     PreferenceManager();

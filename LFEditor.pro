@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     filereadworker.cpp \
+    filewriteworker.cpp \
     main.cpp \
     editorwindow.cpp \
     preferencemanager.cpp \
@@ -25,6 +26,7 @@ SOURCES += \
 HEADERS += \
     editorwindow.h \
     filereadworker.h \
+    filewriteworker.h \
     preferencemanager.h \
     preferencesdialog.h
 
