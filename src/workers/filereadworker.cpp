@@ -31,10 +31,10 @@ void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
     qint64 bytesRead = file->read(fileContent.data(), bytesToRead);
     if (bytesRead < 0)
     {
-        QString errorDescription("Failed to read file: '%1'.");
-        errorDescription.arg(file->fileName());
+        QString desc("Failed to read file: '%1'.");
+        desc = desc.arg(file->fileName());
 
-        sendError("File read error", errorDescription, file->errorString(), file->error());
+        sendError("File read error", desc, file->errorString(), file->error());
         return;
     }
     
