@@ -69,7 +69,7 @@ void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 co
     }
 }
 
-void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, quint64 blockSize, bool simpleWrite)
+void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint64 blockSize, bool simpleWrite)
 {
     // If simpleWrite is true, we do not need to delete removed characters from the file
     if (simpleWrite)
@@ -128,7 +128,7 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, quin
         // Step 2: If needed, move all data after the end of the old block to the end of the new block (this overwrites the deleted data)
         //         The end of the new block is located at 'bytes.size()', and the end of the old block at 'blockSize'
         
-        if (blockSize < static_cast<quint64>(file->size())) 
+        if (blockSize < file->size()) 
         {
             readFromWriteTo(from + blockSize, from + bytes.size(), blockSize - bytes.size(), &bytes, file);
         }

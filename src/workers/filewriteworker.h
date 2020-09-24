@@ -19,7 +19,7 @@ public:
     void readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 count, QByteArray* source, QFile* target);
 
 public slots:
-    void writeFile(QFile* file, qint64 from, QByteArray bytes, quint64 blockSize, bool simpleWrite);
+    void writeFile(QFile* file, qint64 from, QByteArray bytes, qint64 blockSize, bool simpleWrite);
 
 signals:
     void finished();

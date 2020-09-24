@@ -19,10 +19,10 @@ public:
 
     void closeEvent(QCloseEvent *event) override;
 
-    void load(quint64 from, quint64 to);
-    void loadBlock(quint64 blockIndex);
+    void load(qint64 from, qint64 to);
+    void loadBlock(qint64 blockIndex);
 
-    void save(quint64 from);
+    void save(qint64 from);
 
     void goToBlock(uint64_t blockIndex);
 

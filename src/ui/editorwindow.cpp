@@ -102,7 +102,7 @@ void EditorWindow::openPreferences()
 
 void EditorWindow::openFile()
 {
-    // Reset block/page to 0 when opening a new file. Todo: Create a 'setCurrentBlock(quint64)' method for this
+    // Reset block/page to 0 when opening a new file. Todo: Create a 'setCurrentBlock(qint64)' method for this
     // since it is also used in the constructor for initialization.
     ui->goToBlockSpinBox->setValue(0);
     m_currentBlock = 0;
@@ -138,7 +138,7 @@ void EditorWindow::openFile()
 
 void EditorWindow::openSave()
 {
-    quint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
+    qint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
     save(byteSize * m_currentBlock);
 }
 
@@ -155,7 +155,7 @@ void EditorWindow::onClickedGoToBlockButton()
 void EditorWindow::onBlockSpinBoxValueChanged(int value)
 {
     // Todo: Code duplication
-    quint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
+    qint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
     qint64 fileIndex = blockSize * value;
     qint64 fileSize = m_currentFile->size();
     ui->goToBlockButton->setEnabled(fileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the go to block button
@@ -264,7 +264,7 @@ void EditorWindow::onPreferencesChanged()
     ui->fileEdit->setWordWrapMode(wordWrap);
 }
 
-void EditorWindow::load(quint64 from, quint64 to)
+void EditorWindow::load(qint64 from, qint64 to)
 {
     ui->fileProgress->setVisible(true);
     ui->fileProgress->reset();
@@ -284,7 +284,7 @@ void EditorWindow::load(quint64 from, quint64 to)
     thread->start();
 }
 
-void EditorWindow::loadBlock(quint64 blockIndex)
+void EditorWindow::loadBlock(qint64 blockIndex)
 {
     if (hasUnsavedChanges)
     {
@@ -298,11 +298,11 @@ void EditorWindow::loadBlock(quint64 blockIndex)
     }
     
     // Todo: This 'byteSize' calculation doesn't look right
-    quint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
+    qint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
     load(byteSize * blockIndex, byteSize * (blockIndex + 1)); // Load starting at the current block to the next one, aka load 1 block
 }
 
-void EditorWindow::save(quint64 from)
+void EditorWindow::save(qint64 from)
 {
     ui->fileProgress->setVisible(true);
     ui->fileProgress->reset();
@@ -316,7 +316,7 @@ void EditorWindow::save(quint64 from)
     connect(worker, &FileWriteWorker::error, this, &EditorWindow::onFileWriteError);
     
     QByteArray bytes(ui->fileEdit->toPlainText().toUtf8());
-    quint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
+    qint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
     
     connect(
                 thread, &QThread::started, worker, 
@@ -343,7 +343,7 @@ void EditorWindow::goToBlock(uint64_t blockIndex)
     if (!m_currentFile.isNull())
     {
         qDebug() << "File not null";
-        quint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
+        qint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
         qint64 nextBlockFileIndex = blockSize * (blockIndex + 1);
         qint64 fileSize = m_currentFile->size();
         ui->nextBlockButton->setEnabled(nextBlockFileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the next block button
