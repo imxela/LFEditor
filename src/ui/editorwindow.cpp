@@ -20,7 +20,7 @@
 
 EditorWindow::EditorWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::EditorWindow)
+    , ui(new Ui::EditorWindow), m_currentBlock(0)
 {
     ui->setupUi(this);
 
@@ -52,7 +52,7 @@ EditorWindow::EditorWindow(QWidget *parent)
         ui->nextBlockButton, &QPushButton::clicked,
 
         [this]() {
-            goToBlock(m_currentBlock + 1);
+            loadBlock(m_currentBlock + 1);
         }
     );
 
@@ -61,14 +61,14 @@ EditorWindow::EditorWindow(QWidget *parent)
 
         [this]() {
             if (m_currentBlock > 0)
-                goToBlock(m_currentBlock - 1);
+                loadBlock(m_currentBlock - 1);
         }
     );
 
     ui->fileProgress->setVisible(false);
 
     onPreferencesChanged(); // We have to manually simulate a preference change here to initialize them
-    goToBlock(0); // Does some initialization
+    loadBlock(0); // Does some initialization
 }
 
 EditorWindow::~EditorWindow()
@@ -132,7 +132,7 @@ void EditorWindow::openFile()
         ui->nextBlockButton->setEnabled(true);
         ui->previousBlockButton->setEnabled(true);
         
-        goToBlock(m_currentBlock); // Go to the first block of the file
+        loadBlock(m_currentBlock); // Go to the first block of the file
     }
 }
 
@@ -148,7 +148,7 @@ void EditorWindow::openSaveAs()
 
 void EditorWindow::onClickedGoToBlockButton()
 {
-    goToBlock(ui->goToBlockSpinBox->value());
+    loadBlock(ui->goToBlockSpinBox->value());
 }
 
 void EditorWindow::onBlockSpinBoxValueChanged(int value)
@@ -285,6 +285,13 @@ void EditorWindow::load(qint64 from, qint64 to)
 
 void EditorWindow::loadBlock(qint64 blockIndex)
 {
+    if (m_currentFile.isNull())
+    {
+        // m_currentBlock = 0;
+        // ui->goToBlockSpinBox->setValue(0);
+        return;
+    }
+    
     if (hasUnsavedChanges)
     {
         QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Unsaved Changes",
@@ -296,8 +303,17 @@ void EditorWindow::loadBlock(qint64 blockIndex)
         }
     }
     
+    ui->goToBlockSpinBox->setValue(blockIndex);
+    m_currentBlock = blockIndex;
+    
+    PreferenceManager mgr = PreferenceManager::getInstance();
+    qint64 nextBlockFileIndex = getBlockSize() * (blockIndex + 1);
+    qint64 fileSize = m_currentFile->size();
+    ui->nextBlockButton->setEnabled(nextBlockFileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the next block button
+    ui->previousBlockButton->setEnabled(m_currentBlock > 0); // Disable the "previous block" button if we are on the first block
+    
     qint64 blockByteCount = getBlockSize();
-    load(blockByteCount * blockIndex, blockByteCount * (blockIndex + 1)); // Load starting at the current block to the next one, aka load 1 block
+    load(blockByteCount * blockIndex, blockByteCount * (blockIndex + 1));
 }
 
 void EditorWindow::save(qint64 from)
@@ -328,26 +344,6 @@ void EditorWindow::save(qint64 from)
     onFileWriteStarted();
 
     thread->start();
-}
-
-void EditorWindow::goToBlock(uint64_t blockIndex)
-{
-    qDebug() << "Going to block: " << QString::number(blockIndex);
-    
-    ui->goToBlockSpinBox->setValue(blockIndex);
-    m_currentBlock = blockIndex;
-
-    if (!m_currentFile.isNull())
-    {
-        qDebug() << "File not null";
-        PreferenceManager mgr = PreferenceManager::getInstance();
-        qint64 nextBlockFileIndex = getBlockSize() * (blockIndex + 1);
-        qint64 fileSize = m_currentFile->size();
-        ui->nextBlockButton->setEnabled(nextBlockFileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the next block button
-        ui->previousBlockButton->setEnabled(m_currentBlock > 0); // Disable the "previous block" button if we are on the first block
-        
-        loadBlock(blockIndex);
-    }
 }
 
 qint64 EditorWindow::getBlockSize() const

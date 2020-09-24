@@ -19,12 +19,11 @@ public:
 
     void closeEvent(QCloseEvent *event) override;
 
+    // Todo: Rename to 'loadBytes'
     void load(qint64 from, qint64 to);
     void loadBlock(qint64 blockIndex);
 
     void save(qint64 from);
-
-    void goToBlock(uint64_t blockIndex);
 
     // Returns the amount of bytes in a single block according to the current preferences
     qint64 getBlockSize() const;
