@@ -37,15 +37,13 @@ void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
         sendError("File read error", errorDescription, file->errorString(), file->error());
         return;
     }
-
+    
+    m_bytes->resize(bytesRead); // We can resize the array here, no reason to have unused elements
+    
     for (int i = 0; i < m_bytes->count(); i++)
     {
         m_bytes->data()[i] = fileContent.data()[i];
     }
-
-    // Todo: Move the resize to before the for-loop, I'm looping over thousands
-    //       of elements unnecessairly.
-    m_bytes->resize(bytesRead); // We can resize the array here, no reason to have unused elements
 
     emit finished(bytesRead, m_bytes);
     emit readyForDelete();
