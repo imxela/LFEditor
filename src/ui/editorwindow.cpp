@@ -153,9 +153,7 @@ void EditorWindow::onClickedGoToBlockButton()
 
 void EditorWindow::onBlockSpinBoxValueChanged(int value)
 {
-    // Todo: Code duplication
-    qint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
-    qint64 fileIndex = blockSize * value;
+    qint64 fileIndex = getBlockSize() * value;
     qint64 fileSize = m_currentFile->size();
     ui->goToBlockButton->setEnabled(fileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the go to block button
 }
