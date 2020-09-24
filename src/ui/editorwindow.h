@@ -43,6 +43,7 @@ private slots:
     void openSaveAs();
 
     void onClickedGoToBlockButton();
+    void onBlockSpinBoxValueChanged(int value);
 
     void onFileReadStarted();
     void onFileReadFinished(qint32 bytesRead, QByteArray* bytes);
