@@ -26,6 +26,9 @@ public:
 
     void goToBlock(uint64_t blockIndex);
 
+    // Returns the amount of bytes in a single block according to the current preferences
+    qint64 getBlockSize() const;
+    
 private:
     Ui::EditorWindow *ui;
 

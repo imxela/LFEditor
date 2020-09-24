@@ -138,8 +138,7 @@ void EditorWindow::openFile()
 
 void EditorWindow::openSave()
 {
-    qint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
-    save(byteSize * m_currentBlock);
+    save(getBlockSize() * m_currentBlock);
 }
 
 void EditorWindow::openSaveAs()
@@ -297,9 +296,8 @@ void EditorWindow::loadBlock(qint64 blockIndex)
         }
     }
     
-    // Todo: This 'byteSize' calculation doesn't look right
-    qint64 byteSize = sizeof(char) * PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
-    load(byteSize * blockIndex, byteSize * (blockIndex + 1)); // Load starting at the current block to the next one, aka load 1 block
+    qint64 blockByteCount = getBlockSize();
+    load(blockByteCount * blockIndex, blockByteCount * (blockIndex + 1)); // Load starting at the current block to the next one, aka load 1 block
 }
 
 void EditorWindow::save(qint64 from)
@@ -316,11 +314,10 @@ void EditorWindow::save(qint64 from)
     connect(worker, &FileWriteWorker::error, this, &EditorWindow::onFileWriteError);
     
     QByteArray bytes(ui->fileEdit->toPlainText().toUtf8());
-    qint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
     
     connect(
                 thread, &QThread::started, worker, 
-                [worker, this, bytes = bytes, from = from, blockSize = blockSize, simpleWrite = simpleWrite] { 
+                [worker, this, bytes = bytes, from = from, blockSize = getBlockSize(), simpleWrite = simpleWrite] { 
                     worker->writeFile(m_currentFile.data(), from, bytes, blockSize, simpleWrite); 
                 } 
     );
@@ -343,14 +340,22 @@ void EditorWindow::goToBlock(uint64_t blockIndex)
     if (!m_currentFile.isNull())
     {
         qDebug() << "File not null";
-        qint64 blockSize = PreferenceManager::getInstance().blockSize * (1000 / sizeof(char));
-        qint64 nextBlockFileIndex = blockSize * (blockIndex + 1);
+        PreferenceManager mgr = PreferenceManager::getInstance();
+        qint64 nextBlockFileIndex = getBlockSize() * (blockIndex + 1);
         qint64 fileSize = m_currentFile->size();
         ui->nextBlockButton->setEnabled(nextBlockFileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the next block button
         ui->previousBlockButton->setEnabled(m_currentBlock > 0); // Disable the "previous block" button if we are on the first block
         
         loadBlock(blockIndex);
     }
+}
+
+qint64 EditorWindow::getBlockSize() const
+{
+    PreferenceManager& mgr = PreferenceManager::getInstance();
+    
+    // Todo: Fairly sure sizeof(char) is redundant, need to confirm
+    return mgr.blockSize * mgr.byteSize * sizeof(char);
 }
 
 // Todo: Only ask if the user wants to quit if they have unsaved changes

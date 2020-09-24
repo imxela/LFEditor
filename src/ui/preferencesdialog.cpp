@@ -18,6 +18,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->blockSizeSpinBox->setValue(mgr.blockSize);
     ui->wrapModeComboBox->setCurrentIndex(mgr.wordWrapMode);
     ui->writeModeComboBox->setCurrentIndex(mgr.writeMode);
+    ui->byteSizeComboBox->setCurrentIndex(mgr.byteSizeIndex);
+    
+    // Setup item data for each size
+    ui->byteSizeComboBox->setItemData(0, uint(1));
+    ui->byteSizeComboBox->setItemData(1, uint(1000));
+    ui->byteSizeComboBox->setItemData(2, uint(1000000));
+    ui->byteSizeComboBox->setItemData(3, uint(1*10^+9));
     
     connect(ui->writeModeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) { 
         if (index == 0)
@@ -50,6 +57,8 @@ void PreferencesDialog::onClickedSaveButton()
     mgr.blockSize = ui->blockSizeSpinBox->value();
     mgr.wordWrapMode = ui->wrapModeComboBox->currentIndex();
     mgr.writeMode = ui->writeModeComboBox->currentIndex();
+    mgr.byteSizeIndex = ui->byteSizeComboBox->currentIndex();
+    mgr.byteSize = ui->byteSizeComboBox->itemData(mgr.byteSizeIndex).toUInt();
 
     emit onPreferencesChanged();
 
