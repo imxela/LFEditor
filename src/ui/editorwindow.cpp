@@ -14,8 +14,8 @@
 
 #include "preferencemanager.h"
 
-#include "filereadworker.h"
-#include "filewriteworker.h"
+#include <workers/filereadworker.h>
+#include <workers/filewriteworker.h>
 
 EditorWindow::EditorWindow(QWidget *parent)
     : QMainWindow(parent)

@@ -16,25 +16,28 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    filereadworker.cpp \
-    filewriteworker.cpp \
-    main.cpp \
-    editorwindow.cpp \
-    preferencemanager.cpp \
-    preferencesdialog.cpp
+    src/workers/filereadworker.cpp \
+    src/workers/filewriteworker.cpp \
+    src/main.cpp \
+    src/ui/editorwindow.cpp \
+    src/ui/preferencemanager.cpp \
+    src/ui/preferencesdialog.cpp
 
 HEADERS += \
-    editorwindow.h \
-    filereadworker.h \
-    filewriteworker.h \
-    preferencemanager.h \
-    preferencesdialog.h
+    src/ui/editorwindow.h \
+    src/workers/filereadworker.h \
+    src/workers/filewriteworker.h \
+    src/ui/preferencemanager.h \
+    src/ui/preferencesdialog.h
 
 FORMS += \
-    editorwindow.ui \
-    preferencesdialog.ui
+    src/ui/editorwindow.ui \
+    src/ui/preferencesdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+
+INCLUDEPATH += $$PWD/src

@@ -22,12 +22,16 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     connect(ui->writeModeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) { 
         if (index == 0)
         {
-            QMessageBox::warning(this, "Warning", "Warning: The simple file-saving mode does not support removal of characters. "
-                                                  "It can only overwrite existing characters! For such an action, complex mode is required!");
+            QMessageBox::warning(this, "Warning", "The simple file-saving mode cannot delete characters from a file. "
+                                                  "Instead, any deleted characters are replaced by blank spaces. "
+                                                  "This is because removing characters requires the file to be copied, "
+                                                  "which can take a substantial amount of time if the file is large."
+                                                  ""
+                                                  "\n\nIf deleting characters is a must, use complex file-saving instead.");
         }
         else if (index == 1)
         {
-            QMessageBox::warning(this, "Warning", "Warning: Complex file-saving has not yet been implemented and will not work!");
+            QMessageBox::warning(this, "Warning", "Complex file-saving has not yet been implemented and will not work!");
         }
     });
 

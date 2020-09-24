@@ -15,6 +15,8 @@ public:
     virtual ~FileWriteWorker();
     
     void sendError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
+    
+    void readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 count, QByteArray* source, QFile* target);
 
 public slots:
     void writeFile(QFile* file, qint64 from, QByteArray bytes, quint64 blockSize, bool simpleWrite);
