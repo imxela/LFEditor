@@ -20,7 +20,7 @@ public:
     void closeEvent(QCloseEvent *event) override;
 
     // Todo: Rename to 'loadBytes'
-    void load(qint64 from, qint64 to);
+    void loadBytes(qint64 from, qint64 to);
     void loadBlock(qint64 blockIndex);
 
     void save(qint64 from);

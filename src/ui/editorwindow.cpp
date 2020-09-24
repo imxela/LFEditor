@@ -261,7 +261,7 @@ void EditorWindow::onPreferencesChanged()
     ui->fileEdit->setWordWrapMode(wordWrap);
 }
 
-void EditorWindow::load(qint64 from, qint64 to)
+void EditorWindow::loadBytes(qint64 from, qint64 to)
 {
     ui->fileProgress->setVisible(true);
     ui->fileProgress->reset();
@@ -311,7 +311,7 @@ void EditorWindow::loadBlock(qint64 blockIndex)
     ui->previousBlockButton->setEnabled(m_currentBlock > 0); // Disable the "previous block" button if we are on the first block
     
     qint64 blockByteCount = getBlockSize();
-    load(blockByteCount * blockIndex, blockByteCount * (blockIndex + 1));
+    loadBytes(blockByteCount * blockIndex, blockByteCount * (blockIndex + 1));
 }
 
 void EditorWindow::save(qint64 from)
