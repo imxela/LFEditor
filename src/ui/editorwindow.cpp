@@ -348,7 +348,7 @@ void EditorWindow::save(qint64 from)
 qint64 EditorWindow::getBlockSize() const
 {
     PreferenceManager& mgr = PreferenceManager::getInstance();
-    return mgr.blockSize * mgr.byteSize * sizeof(char);
+    return mgr.blockSize * mgr.byteSize;
 }
 
 void EditorWindow::closeEvent(QCloseEvent *event)
