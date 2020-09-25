@@ -19,7 +19,6 @@ public:
 
     void closeEvent(QCloseEvent *event) override;
 
-    // Todo: Rename to 'loadBytes'
     void loadBytes(qint64 from, qint64 to);
     void loadBlock(qint64 blockIndex);
 

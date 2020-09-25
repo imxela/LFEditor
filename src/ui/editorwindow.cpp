@@ -102,8 +102,6 @@ void EditorWindow::openPreferences()
 
 void EditorWindow::openFile()
 {
-    // Reset block/page to 0 when opening a new file. Todo: Create a 'setCurrentBlock(qint64)' method for this
-    // since it is also used in the constructor for initialization.
     ui->goToBlockSpinBox->setValue(0);
     m_currentBlock = 0;
 
@@ -124,7 +122,6 @@ void EditorWindow::openFile()
         }
         
         // File has been loaded, enable controls
-        // Todo: Add a signal for when a new file is loaded and do this there instead?
         ui->goToBlockSpinBox->setEnabled(true);
         ui->goToBlockSpinBox->setValue(0); // First block/page
         
@@ -204,7 +201,6 @@ void EditorWindow::onFileWriteFinished()
     loadBlock(m_currentBlock);
 }
 
-// Todo: Maybe emit an error code in finished() and do this there instead?
 void EditorWindow::onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
 {
     QString text("%1\nReason: %2\nCode: 0x%3");
@@ -352,12 +348,9 @@ void EditorWindow::save(qint64 from)
 qint64 EditorWindow::getBlockSize() const
 {
     PreferenceManager& mgr = PreferenceManager::getInstance();
-    
-    // Todo: Fairly sure sizeof(char) is redundant, need to confirm
     return mgr.blockSize * mgr.byteSize * sizeof(char);
 }
 
-// Todo: Only ask if the user wants to quit if they have unsaved changes
 void EditorWindow::closeEvent(QCloseEvent *event)
 {
     if (hasUnsavedChanges)
