@@ -11,12 +11,13 @@ FileReadWorker::FileReadWorker()
 
 FileReadWorker::~FileReadWorker()
 {
-
+    
 }
 
 void FileReadWorker::sendError(const QString &title, const QString &description, const QString& errorString, qint64 errorCode)
 {
     emit error(title, description, errorString, errorCode);
+    thread()->exit(EXIT_FAILURE);
 }
 
 void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
@@ -47,12 +48,6 @@ void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
 
     emit finished(bytesRead, m_bytes);
     emit readyForDelete();
-
+    
     thread()->quit();
-    if (!thread()->wait(5000))
-    {
-        // Failed to quit thread, possibly deadlocked, terminate instead
-        thread()->terminate();
-    }
-    thread()->wait(); // Wait for deleteLater();
 }

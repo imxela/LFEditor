@@ -48,6 +48,7 @@ private slots:
 
     void onFileReadStarted();
     void onFileReadFinished(qint32 bytesRead, QByteArray* bytes);
+    void onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
 
     void onFileWriteStarted();
     void onFileWriteFinished();

@@ -16,6 +16,7 @@ FileWriteWorker::~FileWriteWorker()
 void FileWriteWorker::sendError(const QString &title, const QString &description, const QString &errorString, qint64 errorCode)
 {
     emit error(title, description, errorString, errorCode);
+    thread()->exit(EXIT_FAILURE);
 }
 
 void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 count, QByteArray* source, QFile* target)
@@ -145,4 +146,6 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
 
     emit finished();
     emit readyForDelete();
+    
+    thread()->quit();
 }

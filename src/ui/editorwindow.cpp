@@ -184,6 +184,16 @@ void EditorWindow::onFileReadFinished(qint32 bytesRead, QByteArray* bytes)
     ui->fileProgress->setVisible(false);
 }
 
+void EditorWindow::onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
+{
+    QString text("%1\nReason: %2\nCode: 0x%3");
+    text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper());
+    QMessageBox::critical(this, title, text);
+    
+    ui->fileEdit->setPlaceholderText("File read failed!");
+    ui->fileProgress->setVisible(false);
+}
+
 void EditorWindow::onFileWriteStarted()
 {
     qDebug() << "fileWriteStarted()";
@@ -206,6 +216,9 @@ void EditorWindow::onFileWriteError(const QString& title, const QString& descrip
     QString text("%1\nReason: %2\nCode: 0x%3");
     text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper());
     QMessageBox::critical(this, title, text);
+    
+    ui->fileEdit->setPlaceholderText("File write failed!");
+    ui->fileProgress->setVisible(false);
 }
 
 void EditorWindow::onTextEdited(bool modified)
@@ -267,7 +280,7 @@ void EditorWindow::loadBytes(qint64 from, qint64 to)
     ui->fileProgress->setVisible(true);
     ui->fileProgress->reset();
 
-    QThread* thread = new QThread(this); // Memory leak? or does connect(...deleteLater()) fix that?
+    QThread* thread = new QThread(this);
     FileReadWorker* worker = new FileReadWorker();
 
     worker->moveToThread(thread);
@@ -286,8 +299,6 @@ void EditorWindow::loadBlock(qint64 blockIndex)
 {
     if (m_currentFile.isNull())
     {
-        // m_currentBlock = 0;
-        // ui->goToBlockSpinBox->setValue(0);
         return;
     }
     
