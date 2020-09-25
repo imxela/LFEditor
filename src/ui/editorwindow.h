@@ -56,6 +56,6 @@ private slots:
 
     void onTextEdited(bool modified);
     
-    void onPreferencesChanged();
+    void onPreferencesChanged(bool requireReload);
 };
 #endif // EDITORWINDOW_H

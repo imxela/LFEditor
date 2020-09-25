@@ -23,7 +23,7 @@ private slots:
     void onClickedCancelButton();
 
 signals:
-    void onPreferencesChanged();
+    void onPreferencesChanged(bool requireReload);
 
 };
 

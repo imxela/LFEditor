@@ -10,7 +10,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
-
+    
     connect(ui->saveButton, &QPushButton::clicked, this, &PreferencesDialog::onClickedSaveButton);
     connect(ui->cancelButton, &QPushButton::clicked, this, &PreferencesDialog::onClickedCancelButton);
 
@@ -54,13 +54,18 @@ PreferencesDialog::~PreferencesDialog()
 void PreferencesDialog::onClickedSaveButton()
 {
     PreferenceManager& mgr = PreferenceManager::getInstance();
+    
+    // If the block size has changed in any way, the current block has to be reloaded to reflect the changes
+    bool reloadBlock = mgr.blockSize != ui->blockSizeSpinBox->value() 
+                    || mgr.byteSizeIndex != ui->byteSizeComboBox->currentIndex();
+    
     mgr.blockSize = ui->blockSizeSpinBox->value();
     mgr.wordWrapMode = ui->wrapModeComboBox->currentIndex();
     mgr.writeMode = ui->writeModeComboBox->currentIndex();
     mgr.byteSizeIndex = ui->byteSizeComboBox->currentIndex();
     mgr.byteSize = ui->byteSizeComboBox->itemData(mgr.byteSizeIndex).toUInt();
 
-    emit onPreferencesChanged();
+    emit onPreferencesChanged(reloadBlock);
 
     close();
 }

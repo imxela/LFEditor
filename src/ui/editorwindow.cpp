@@ -67,7 +67,7 @@ EditorWindow::EditorWindow(QWidget *parent)
 
     ui->fileProgress->setVisible(false);
 
-    onPreferencesChanged(); // We have to manually simulate a preference change here to initialize them
+    onPreferencesChanged(false); // We have to manually simulate a preference change here to initialize them
     loadBlock(0); // Does some initialization
 }
 
@@ -229,7 +229,7 @@ void EditorWindow::onTextEdited(bool modified)
     }
 }
 
-void EditorWindow::onPreferencesChanged()
+void EditorWindow::onPreferencesChanged(bool requireReload)
 {
     PreferenceManager& mgr = PreferenceManager::getInstance();
     int wrapModeInt = mgr.wordWrapMode;
@@ -259,6 +259,11 @@ void EditorWindow::onPreferencesChanged()
 
     qDebug() << "Reloading preferences";
     ui->fileEdit->setWordWrapMode(wordWrap);
+    
+    if (requireReload)
+    {
+        loadBlock(m_currentBlock);
+    }
 }
 
 void EditorWindow::loadBytes(qint64 from, qint64 to)
