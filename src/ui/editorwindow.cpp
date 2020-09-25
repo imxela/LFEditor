@@ -24,10 +24,13 @@ EditorWindow::EditorWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    // Note: Saving is not yet implemented, so there's no risk of data loss in the current version.
+#if 0
     QMessageBox::warning(this, "Warning - Loss of data", "This software is at an early stage of development. "
                                           "Loss of data is possible and should be expected. "
                                           "Making backups of any and all files you open in this software is therefore highly recommended."
                          );
+#endif
     
     hasUnsavedChanges = false;
     
