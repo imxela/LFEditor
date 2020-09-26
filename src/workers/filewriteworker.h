@@ -1,30 +1,26 @@
 #ifndef FILEWRITEWORKER_H
 #define FILEWRITEWORKER_H
 
+#include "workerbase.h"
+
 #include <QObject>
 #include <QFile>
 #include <QSharedPointer>
 #include <QByteArray>
 
-class FileWriteWorker : public QObject
+class FileWriteWorker : public WorkerBase
 {
     Q_OBJECT
 
 public:
-    FileWriteWorker();
+    FileWriteWorker(QObject* parent = nullptr);
     virtual ~FileWriteWorker();
     
-    void sendError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
-    
+    // Todo: This should be private
     void readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 count, QByteArray* source, QFile* target);
 
 public slots:
     void writeFile(QFile* file, qint64 from, QByteArray bytes, qint64 blockSize, bool simpleWrite);
-
-signals:
-    void finished();
-    void error(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
-    void readyForDelete();
 
 };
 

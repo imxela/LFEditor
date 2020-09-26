@@ -4,9 +4,9 @@
 #include <QByteArray>
 #include <QThread>
 
-FileReadWorker::FileReadWorker()
+FileReadWorker::FileReadWorker(QObject* parent) :
+    WorkerBase(parent)
 {
-
 }
 
 FileReadWorker::~FileReadWorker()
@@ -14,17 +14,11 @@ FileReadWorker::~FileReadWorker()
     
 }
 
-void FileReadWorker::sendError(const QString &title, const QString &description, const QString& errorString, qint64 errorCode)
-{
-    emit error(title, description, errorString, errorCode);
-    thread()->exit(EXIT_FAILURE);
-}
-
 void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
 {
     qint64 bytesToRead = to - from;
     QScopedPointer<char> fileContent(new char[bytesToRead]);
-    m_bytes = new QByteArray(bytesToRead, ' '); // Fill with null-terminator for now
+    m_bytes = new QByteArray(bytesToRead, ' '); // Fill with blanks for now
 
     qDebug() << "Reading " << QString::number(bytesToRead) << " bytes";
 
@@ -35,7 +29,7 @@ void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
         QString desc("Failed to read file: '%1'.");
         desc = desc.arg(file->fileName());
 
-        sendError("File read error", desc, file->errorString(), file->error());
+        REPORT_ERROR("File read error", desc, file->errorString(), file->error());
         return;
     }
     
@@ -46,8 +40,6 @@ void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
         m_bytes->data()[i] = fileContent.data()[i];
     }
 
-    emit finished(bytesRead, m_bytes);
-    emit readyForDelete();
-    
-    thread()->quit();
+    emit result(bytesRead, m_bytes);
+    finishExecution();
 }

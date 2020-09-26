@@ -3,7 +3,8 @@
 #include <QDebug>
 #include <QThread>
 
-FileWriteWorker::FileWriteWorker()
+FileWriteWorker::FileWriteWorker(QObject* parent) :
+    WorkerBase(parent)
 {
 
 }
@@ -11,12 +12,6 @@ FileWriteWorker::FileWriteWorker()
 FileWriteWorker::~FileWriteWorker()
 {
     qDebug() << "FileWriteWorker destroyed!";
-}
-
-void FileWriteWorker::sendError(const QString &title, const QString &description, const QString &errorString, qint64 errorCode)
-{
-    emit error(title, description, errorString, errorCode);
-    thread()->exit(EXIT_FAILURE);
 }
 
 void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 count, QByteArray* source, QFile* target)
@@ -28,7 +23,7 @@ void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 co
             QString desc("Failed to seek file '%1'.");
             desc = desc.arg(target->fileName());
         
-            sendError("File Error", desc, target->errorString(), target->error());
+            REPORT_ERROR("File Error", desc, target->errorString(), target->error());
             return; 
         }
         
@@ -39,7 +34,7 @@ void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 co
             QString desc("Failed to read file '%1'.\nExpected %2 characters, but only %3 were read.");
             desc = desc.arg(target->fileName(), QString::number(1), QString::number(readCount));
         
-            sendError("File Error", desc, target->errorString(), target->error());
+            REPORT_ERROR("File Error", desc, target->errorString(), target->error());
             return; 
         }
         
@@ -48,7 +43,7 @@ void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 co
             QString desc("Failed to seek file '%1'.");
             desc = desc.arg(target->fileName());
         
-            sendError("File Error", desc, target->errorString(), target->error());
+            REPORT_ERROR("File Error", desc, target->errorString(), target->error());
             return; 
         }
         
@@ -58,7 +53,7 @@ void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 co
             QString desc("Failed to write file '%1'.\nExpected %2 characters, but only %3 were written.");
             desc = desc.arg(target->fileName(), QString::number(1), QString::number(writeCount));
         
-            sendError("File Error", desc, target->errorString(), target->error());
+            REPORT_ERROR("File Error", desc, target->errorString(), target->error());
             return; 
         }
         
@@ -83,7 +78,7 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
             QString desc("Failed to seek file '%1'.");
             desc = desc.arg(file->fileName());
         
-            sendError("File Error", desc, file->errorString(), file->error());
+            REPORT_ERROR("File Error", desc, file->errorString(), file->error());
             return;
         }
         
@@ -93,7 +88,7 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
             QString desc("Failed to write to file '%1'.");
             desc = desc.arg(file->fileName());
         
-            sendError("File Error", desc, file->errorString(), file->error());
+            REPORT_ERROR("File Error", desc, file->errorString(), file->error());
             return;
         }
     }
@@ -113,7 +108,7 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
             QString desc("Failed to seek file '%1'.");
             desc = desc.arg(file->fileName());
         
-            sendError("File Error", desc, file->errorString(), file->error());
+            REPORT_ERROR("File Error", desc, file->errorString(), file->error());
             return;
         }
         
@@ -122,7 +117,7 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
             QString desc("Failed to write to file '%1'.");
             desc = desc.arg(file->fileName());
         
-            sendError("File Error", desc, file->errorString(), file->error());
+            REPORT_ERROR("File Error", desc, file->errorString(), file->error());
             return;
         }
         
@@ -144,8 +139,5 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
         qDebug() << "Resized file from " << oldFileSize << " bytes to " << file->size() << "bytes.";
     }
 
-    emit finished();
-    emit readyForDelete();
-    
-    thread()->quit();
+    finishExecution();
 }

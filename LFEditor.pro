@@ -21,14 +21,16 @@ SOURCES += \
     src/main.cpp \
     src/ui/editorwindow.cpp \
     src/ui/preferencemanager.cpp \
-    src/ui/preferencesdialog.cpp
+    src/ui/preferencesdialog.cpp \
+    src/workers/workerbase.cpp
 
 HEADERS += \
     src/ui/editorwindow.h \
     src/workers/filereadworker.h \
     src/workers/filewriteworker.h \
     src/ui/preferencemanager.h \
-    src/ui/preferencesdialog.h
+    src/ui/preferencesdialog.h \
+    src/workers/workerbase.h
 
 FORMS += \
     src/ui/editorwindow.ui \

@@ -187,11 +187,9 @@ void EditorWindow::onFileReadFinished(qint32 bytesRead, QByteArray* bytes)
     ui->fileProgress->setVisible(false);
 }
 
-void EditorWindow::onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
+void EditorWindow::onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode, const QString& sourceFile, qint64 line)
 {
-    QString text("%1\nReason: %2\nCode: 0x%3");
-    text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper());
-    QMessageBox::critical(this, title, text);
+    displayErrorDialog(title, description, errorString, errorCode, sourceFile, line);
     
     ui->fileEdit->setPlaceholderText("File read failed!");
     ui->fileProgress->setVisible(false);
@@ -214,11 +212,9 @@ void EditorWindow::onFileWriteFinished()
     loadBlock(m_currentBlock);
 }
 
-void EditorWindow::onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
+void EditorWindow::onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode, const QString& sourceFile, qint64 line)
 {
-    QString text("%1\nReason: %2\nCode: 0x%3");
-    text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper());
-    QMessageBox::critical(this, title, text);
+    displayErrorDialog(title, description, errorString, errorCode, sourceFile, line);
     
     ui->fileEdit->setPlaceholderText("File write failed!");
     ui->fileProgress->setVisible(false);
@@ -288,10 +284,11 @@ void EditorWindow::loadBytes(qint64 from, qint64 to)
 
     worker->moveToThread(thread);
 
-    connect(worker, &FileReadWorker::finished, this, &EditorWindow::onFileReadFinished);
+    connect(worker, &FileReadWorker::error, this, &EditorWindow::onFileReadError);
+    connect(worker, &FileReadWorker::result, this, &EditorWindow::onFileReadFinished);
     connect(thread, &QThread::started, worker, [worker, this, from = from, to = to] { worker->readFile(m_currentFile.data(), from, to); } );
     connect(thread, &QThread::finished, thread, &FileReadWorker::deleteLater);
-    connect(worker, &FileReadWorker::readyForDelete, worker, &FileReadWorker::deleteLater);
+    connect(worker, &FileReadWorker::readyForDeletion, worker, &FileReadWorker::deleteLater);
 
     onFileReadStarted();
 
@@ -352,11 +349,20 @@ void EditorWindow::save(qint64 from)
     );
     
     connect(thread, &QThread::finished, thread, &FileWriteWorker::deleteLater);
-    connect(worker, &FileWriteWorker::readyForDelete, worker, &FileWriteWorker::deleteLater);
+    connect(worker, &FileWriteWorker::readyForDeletion, worker, &FileWriteWorker::deleteLater);
 
     onFileWriteStarted();
 
     thread->start();
+}
+
+void EditorWindow::displayErrorDialog(const QString &title, const QString &description, const QString &errorString, qint64 errorCode, const QString &sourceFile, qint64 line)
+{
+    // Note: Note sure if I should be displaying things like file and line in non-debug mode.
+    // Todo: Maybe add an option to start LFEditor in debug mode to enable this extra information?
+    QString text("%1\nReason: %2\nCode: 0x%3\nFile: %4\nLine: %5");
+    text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper(), sourceFile, QString::number(line));
+    QMessageBox::critical(this, title, text);
 }
 
 qint64 EditorWindow::getBlockSize() const

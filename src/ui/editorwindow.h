@@ -23,6 +23,9 @@ public:
     void loadBlock(qint64 blockIndex);
 
     void save(qint64 from);
+    
+    // Displays an error dialog to the user
+    void displayErrorDialog(const QString& title, const QString& description, const QString& errorString, qint64 errorCode, const QString& sourceFile, qint64 line);
 
     // Returns the amount of bytes in a single block according to the current preferences
     qint64 getBlockSize() const;
@@ -48,11 +51,11 @@ private slots:
 
     void onFileReadStarted();
     void onFileReadFinished(qint32 bytesRead, QByteArray* bytes);
-    void onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
+    void onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode, const QString& sourceFile, qint64 line);
 
     void onFileWriteStarted();
     void onFileWriteFinished();
-    void onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
+    void onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode, const QString& sourceFile, qint64 line);
 
     void onTextEdited(bool modified);
     
