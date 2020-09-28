@@ -14,7 +14,7 @@ FileWriteWorker::~FileWriteWorker()
     qDebug() << "FileWriteWorker destroyed!";
 }
 
-void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 count, QByteArray* source, QFile* target)
+void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 count/*, QByteArray* source*/, QFile* target)
 {
     for (qint64 i = 0; i < count; i++)
     {   
@@ -125,7 +125,7 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
         
         if (blockSize < file->size()) 
         {
-            readFromWriteTo(from + blockSize, from + bytes.size(), blockSize - bytes.size(), &bytes, file);
+            readFromWriteTo(from + blockSize, from + bytes.size(), blockSize - bytes.size()/*, &bytes*/, file);
         }
         else
         {
