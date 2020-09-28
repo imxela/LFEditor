@@ -64,7 +64,9 @@ void PreferencesDialog::onClickedSaveButton()
     mgr.writeMode = ui->writeModeComboBox->currentIndex();
     mgr.byteSizeIndex = ui->byteSizeComboBox->currentIndex();
     mgr.byteSize = ui->byteSizeComboBox->itemData(mgr.byteSizeIndex).toUInt();
-
+    
+    mgr.savePreferences();
+    
     emit onPreferencesChanged(reloadBlock);
 
     close();
