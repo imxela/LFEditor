@@ -95,7 +95,6 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
     else
     {   
         /* Complex Write */
-        
         qDebug() << "Starting complex write";
         qDebug() << "bytes.size() is " << QString::number(bytes.size());
         qDebug() << "blockSize is " << QString::number(blockSize);

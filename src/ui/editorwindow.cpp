@@ -239,6 +239,8 @@ void EditorWindow::onTextEdited(bool modified)
 
 void EditorWindow::onPreferencesChanged(bool requireReload)
 {
+    qDebug() << "Reloading preferences...";
+    
     PreferenceManager& mgr = PreferenceManager::getInstance();
     int wrapModeInt = mgr.wordWrapMode;
     QTextOption::WrapMode wordWrap;
@@ -264,8 +266,7 @@ void EditorWindow::onPreferencesChanged(bool requireReload)
     
     int writeModeInt = mgr.writeMode;
     simpleWrite = writeModeInt == 0;
-
-    qDebug() << "Reloading preferences";
+    
     ui->fileEdit->setWordWrapMode(wordWrap);
     
     if (requireReload)
@@ -331,7 +332,7 @@ void EditorWindow::save(qint64 from)
     ui->fileProgress->setVisible(true);
     ui->fileProgress->reset();
 
-    QThread* thread = new QThread(this); // Memory leak? or does connect(...deleteLater()) fix that?
+    QThread* thread = new QThread(this);
     FileWriteWorker* worker = new FileWriteWorker();
 
     worker->moveToThread(thread);
@@ -360,7 +361,7 @@ void EditorWindow::displayErrorDialog(const QString &title, const QString &descr
 {
     // Note: Note sure if I should be displaying things like file and line in non-debug mode.
     // Todo: Maybe add an option to start LFEditor in debug mode to enable this extra information?
-    QString text("%1\nReason: %2\nCode: 0x%3\nFile: %4\nLine: %5");
+    QString text("%1\nReason: %2\nCode: 0x%3");
     text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper());
     QMessageBox::critical(this, title, text);
 }

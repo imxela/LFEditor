@@ -38,6 +38,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         }
         else if (index == 1)
         {
+            // Todo: Enable this again once file-saving has been implemented.
             QMessageBox::warning(this, "Warning", "Complex file-saving has not yet been implemented and will not work!");
         }
     });

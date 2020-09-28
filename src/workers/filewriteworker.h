@@ -16,7 +16,7 @@ public:
     FileWriteWorker(QObject* parent = nullptr);
     virtual ~FileWriteWorker();
     
-    // Todo: This should be private
+private:
     void readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 count, QByteArray* source, QFile* target);
 
 public slots:
