@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>LFEditor</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../../res/resources.qrc">
+    <normaloff>:/images/images/lfeditor.ico</normaloff>:/images/images/lfeditor.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -194,6 +198,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../res/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

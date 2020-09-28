@@ -43,3 +43,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 
 INCLUDEPATH += $$PWD/src
+
+RESOURCES += \
+	res/resources.qrc
