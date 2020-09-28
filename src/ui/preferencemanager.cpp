@@ -1,5 +1,8 @@
 #include "preferencemanager.h"
 
+#include <QStandardPaths>
+#include <QDebug>
+
 PreferenceManager& PreferenceManager::getInstance()
 {
     static PreferenceManager instance;
@@ -14,7 +17,9 @@ PreferenceManager::PreferenceManager()
 void PreferenceManager::loadPreferences()
 {
     // Load config file
-    m_settings = QSharedPointer<QSettings>(new QSettings(QString("configs/config.ini"), QSettings::IniFormat));
+    QString configPath = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) ;
+    m_settings = QSharedPointer<QSettings>(new QSettings(configPath + "/config.ini", QSettings::IniFormat));
+    qDebug() << "Config location: " << m_settings->fileName();
 
     // Set values
     blockSize = m_settings->value("blockSize", 50).toInt();
