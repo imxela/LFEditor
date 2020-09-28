@@ -187,9 +187,9 @@ void EditorWindow::onFileReadFinished(qint32 bytesRead, QByteArray* bytes)
     ui->fileProgress->setVisible(false);
 }
 
-void EditorWindow::onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode, const QString& sourceFile, qint64 line)
+void EditorWindow::onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
 {
-    displayErrorDialog(title, description, errorString, errorCode, sourceFile, line);
+    displayErrorDialog(title, description, errorString, errorCode);
     
     ui->fileEdit->setPlaceholderText("File read failed!");
     ui->fileProgress->setVisible(false);
@@ -212,9 +212,9 @@ void EditorWindow::onFileWriteFinished()
     loadBlock(m_currentBlock);
 }
 
-void EditorWindow::onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode, const QString& sourceFile, qint64 line)
+void EditorWindow::onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
 {
-    displayErrorDialog(title, description, errorString, errorCode, sourceFile, line);
+    displayErrorDialog(title, description, errorString, errorCode);
     
     ui->fileEdit->setPlaceholderText("File write failed!");
     ui->fileProgress->setVisible(false);
@@ -356,12 +356,12 @@ void EditorWindow::save(qint64 from)
     thread->start();
 }
 
-void EditorWindow::displayErrorDialog(const QString &title, const QString &description, const QString &errorString, qint64 errorCode, const QString &sourceFile, qint64 line)
+void EditorWindow::displayErrorDialog(const QString &title, const QString &description, const QString &errorString, qint64 errorCode)
 {
     // Note: Note sure if I should be displaying things like file and line in non-debug mode.
     // Todo: Maybe add an option to start LFEditor in debug mode to enable this extra information?
     QString text("%1\nReason: %2\nCode: 0x%3\nFile: %4\nLine: %5");
-    text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper(), sourceFile, QString::number(line));
+    text = text.arg(description, errorString, QString::number(errorCode, 16).toUpper());
     QMessageBox::critical(this, title, text);
 }
 

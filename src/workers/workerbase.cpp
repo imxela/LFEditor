@@ -12,9 +12,9 @@ WorkerBase::~WorkerBase()
     
 }
 
-void WorkerBase::reportError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode, const QString& sourceFile, qint64 line)
+void WorkerBase::reportError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
 {
-    emit error(title, description, errorString, errorCode, sourceFile, line);
+    emit error(title, description, errorString, errorCode);
     thread()->exit(EXIT_FAILURE);
 }
 

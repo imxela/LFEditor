@@ -29,7 +29,7 @@ void FileReadWorker::readFile(QFile* file, qint64 from, qint64 to)
         QString desc("Failed to read file: '%1'.");
         desc = desc.arg(file->fileName());
 
-        REPORT_ERROR("File read error", desc, file->errorString(), file->error());
+        reportError("File read error", desc, file->errorString(), file->error());
         return;
     }
     
