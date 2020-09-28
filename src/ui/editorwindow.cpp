@@ -20,7 +20,7 @@
 
 EditorWindow::EditorWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::EditorWindow), m_currentBlock(0)
+    , ui(new Ui::EditorWindow), currentBlock(0)
 {
     ui->setupUi(this);
 
@@ -55,7 +55,7 @@ EditorWindow::EditorWindow(QWidget *parent)
         ui->nextBlockButton, &QPushButton::clicked,
 
         [this]() {
-            loadBlock(m_currentBlock + 1);
+            loadBlock(currentBlock + 1);
         }
     );
 
@@ -63,8 +63,8 @@ EditorWindow::EditorWindow(QWidget *parent)
         ui->previousBlockButton, &QPushButton::clicked,
 
         [this]() {
-            if (m_currentBlock > 0)
-                loadBlock(m_currentBlock - 1);
+            if (currentBlock > 0)
+                loadBlock(currentBlock - 1);
         }
     );
 
@@ -76,8 +76,8 @@ EditorWindow::EditorWindow(QWidget *parent)
 
 EditorWindow::~EditorWindow()
 {
-    if (!m_currentFile.isNull())
-        m_currentFile->close();
+    if (!currentFile.isNull())
+        currentFile->close();
     
     delete ui;
 }
@@ -106,7 +106,7 @@ void EditorWindow::openPreferences()
 void EditorWindow::openFile()
 {
     ui->goToBlockSpinBox->setValue(0);
-    m_currentBlock = 0;
+    currentBlock = 0;
 
     QFileDialog fileDialog(this);
     fileDialog.setFileMode(QFileDialog::FileMode::AnyFile);
@@ -116,11 +116,11 @@ void EditorWindow::openFile()
         QString fileName = fileDialog.selectedFiles()[0];
         setWindowTitle(QString("LFEditor [ %1 ]").arg(fileName));
 
-        m_currentFile = QSharedPointer<QFile>(new QFile(fileName));
-        if (!m_currentFile->open(QIODevice::ReadWrite))
+        currentFile = QSharedPointer<QFile>(new QFile(fileName));
+        if (!currentFile->open(QIODevice::ReadWrite))
         {
-            qDebug() << "Failed to open file '" << fileName << "': " << m_currentFile->error();
-            QMessageBox::critical(this, "File Error", QString("Failed to open file '%l'.\nReason: %l").arg(fileName, m_currentFile->error()));
+            qDebug() << "Failed to open file '" << fileName << "': " << currentFile->error();
+            QMessageBox::critical(this, "File Error", QString("Failed to open file '%l'.\nReason: %l").arg(fileName, currentFile->error()));
             return;
         }
         
@@ -132,13 +132,13 @@ void EditorWindow::openFile()
         ui->nextBlockButton->setEnabled(true);
         ui->previousBlockButton->setEnabled(true);
         
-        loadBlock(m_currentBlock); // Go to the first block of the file
+        loadBlock(currentBlock); // Go to the first block of the file
     }
 }
 
 void EditorWindow::openSave()
 {
-    save(getBlockSize() * m_currentBlock);
+    save(getBlockSize() * currentBlock);
 }
 
 void EditorWindow::openSaveAs()
@@ -154,7 +154,7 @@ void EditorWindow::onClickedGoToBlockButton()
 void EditorWindow::onBlockSpinBoxValueChanged(int value)
 {
     qint64 fileIndex = getBlockSize() * value;
-    qint64 fileSize = m_currentFile->size();
+    qint64 fileSize = currentFile->size();
     ui->goToBlockButton->setEnabled(fileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the go to block button
 }
 
@@ -206,10 +206,10 @@ void EditorWindow::onFileWriteFinished()
 {
     ui->fileProgress->setVisible(false);
     hasUnsavedChanges = false; // Changed have been saved
-    setWindowTitle(QString("LFEditor [ %1 ]").arg(m_currentFile->fileName()));
+    setWindowTitle(QString("LFEditor [ %1 ]").arg(currentFile->fileName()));
     
     // Reload the current block to see the changes made to the file
-    loadBlock(m_currentBlock);
+    loadBlock(currentBlock);
 }
 
 void EditorWindow::onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
@@ -222,17 +222,17 @@ void EditorWindow::onFileWriteError(const QString& title, const QString& descrip
 
 void EditorWindow::onTextEdited(bool modified)
 {
-    if (!m_currentFile.isNull())
+    if (!currentFile.isNull())
     {
         hasUnsavedChanges = modified;
         
         if (modified)
         {
-            setWindowTitle(QString("LFEditor [ %1* ]").arg(m_currentFile->fileName()));
+            setWindowTitle(QString("LFEditor [ %1* ]").arg(currentFile->fileName()));
         }
         else
         {
-            setWindowTitle(QString("LFEditor [ %1 ]").arg(m_currentFile->fileName()));
+            setWindowTitle(QString("LFEditor [ %1 ]").arg(currentFile->fileName()));
         }
     }
 }
@@ -270,7 +270,7 @@ void EditorWindow::onPreferencesChanged(bool requireReload)
     
     if (requireReload)
     {
-        loadBlock(m_currentBlock);
+        loadBlock(currentBlock);
     }
 }
 
@@ -286,7 +286,7 @@ void EditorWindow::loadBytes(qint64 from, qint64 to)
 
     connect(worker, &FileReadWorker::error, this, &EditorWindow::onFileReadError);
     connect(worker, &FileReadWorker::result, this, &EditorWindow::onFileReadFinished);
-    connect(thread, &QThread::started, worker, [worker, this, from = from, to = to] { worker->readFile(m_currentFile.data(), from, to); } );
+    connect(thread, &QThread::started, worker, [worker, this, from = from, to = to] { worker->readFile(currentFile.data(), from, to); } );
     connect(thread, &QThread::finished, thread, &FileReadWorker::deleteLater);
     connect(worker, &FileReadWorker::readyForDeletion, worker, &FileReadWorker::deleteLater);
 
@@ -297,7 +297,7 @@ void EditorWindow::loadBytes(qint64 from, qint64 to)
 
 void EditorWindow::loadBlock(qint64 blockIndex)
 {
-    if (m_currentFile.isNull())
+    if (currentFile.isNull())
     {
         return;
     }
@@ -314,13 +314,13 @@ void EditorWindow::loadBlock(qint64 blockIndex)
     }
     
     ui->goToBlockSpinBox->setValue(blockIndex);
-    m_currentBlock = blockIndex;
+    currentBlock = blockIndex;
     
     PreferenceManager mgr = PreferenceManager::getInstance();
     qint64 nextBlockFileIndex = getBlockSize() * (blockIndex + 1);
-    qint64 fileSize = m_currentFile->size();
+    qint64 fileSize = currentFile->size();
     ui->nextBlockButton->setEnabled(nextBlockFileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the next block button
-    ui->previousBlockButton->setEnabled(m_currentBlock > 0); // Disable the "previous block" button if we are on the first block
+    ui->previousBlockButton->setEnabled(currentBlock > 0); // Disable the "previous block" button if we are on the first block
     
     qint64 blockByteCount = getBlockSize();
     loadBytes(blockByteCount * blockIndex, blockByteCount * (blockIndex + 1));
@@ -344,7 +344,7 @@ void EditorWindow::save(qint64 from)
     connect(
                 thread, &QThread::started, worker, 
                 [worker, this, bytes = bytes, from = from, blockSize = getBlockSize(), simpleWrite = simpleWrite] { 
-                    worker->writeFile(m_currentFile.data(), from, bytes, blockSize, simpleWrite); 
+                    worker->writeFile(currentFile.data(), from, bytes, blockSize, simpleWrite); 
                 } 
     );
     

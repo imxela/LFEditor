@@ -33,8 +33,8 @@ public:
 private:
     Ui::EditorWindow *ui;
 
-    uint64_t m_currentBlock;
-    QSharedPointer<QFile> m_currentFile;
+    uint64_t currentBlock;
+    QSharedPointer<QFile> currentFile;
     
     bool simpleWrite;
     bool hasUnsavedChanges;

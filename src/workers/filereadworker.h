@@ -22,7 +22,7 @@ signals:
     void result(qint32 bytesRead, QByteArray* bytes);
 
 private:
-    QByteArray* m_bytes;
+    QByteArray* bytes;
 
 };
 

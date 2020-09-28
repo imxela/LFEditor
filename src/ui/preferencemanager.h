@@ -22,7 +22,7 @@ public:
 private:
     PreferenceManager();
 
-    QSharedPointer<QSettings> m_settings;
+    QSharedPointer<QSettings> settings;
 
 };
 
