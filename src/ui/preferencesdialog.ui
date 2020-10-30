@@ -53,10 +53,10 @@
      </rect>
     </property>
     <property name="text">
-     <string>Block size:</string>
+     <string>Chunk size:</string>
     </property>
    </widget>
-   <widget class="QSpinBox" name="blockSizeSpinBox">
+   <widget class="QSpinBox" name="chunkSizeSpinBox">
     <property name="geometry">
      <rect>
       <x>180</x>
@@ -85,7 +85,7 @@
      <string notr="true">color: rgb(255, 0, 0);</string>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Warning: Changing the block size will reload any opened file from disk!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Warning: Changing the chunk size will reload any opened file from disk!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="textFormat">
      <enum>Qt::AutoText</enum>
@@ -101,7 +101,7 @@
      </rect>
     </property>
     <property name="currentText">
-     <string>Megabyte(s)</string>
+     <string>Byte(s)</string>
     </property>
     <property name="frame">
      <bool>true</bool>

@@ -35,10 +35,10 @@ EditorWindow::EditorWindow(QWidget *parent)
     hasUnsavedChanges = false;
     
     // Disable all file controls since no file is loaded
-    ui->goToBlockSpinBox->setEnabled(false);
-    ui->goToBlockButton->setEnabled(false);
-    ui->nextBlockButton->setEnabled(false);
-    ui->previousBlockButton->setEnabled(false);
+    ui->goToChunkSpinBox->setEnabled(false);
+    ui->goToChunkButton->setEnabled(false);
+    ui->nextChunkButton->setEnabled(false);
+    ui->previousChunkButton->setEnabled(false);
 
     connect(ui->actionExit, &QAction::triggered, this, [this] { this->close(); } );
     connect(ui->actionAbout, &QAction::triggered, this, &EditorWindow::openAbout);
@@ -46,13 +46,13 @@ EditorWindow::EditorWindow(QWidget *parent)
     connect(ui->actionOpen, &QAction::triggered, this, &EditorWindow::openFile);
     connect(ui->actionSave, &QAction::triggered, this, &EditorWindow::openSave);
 
-    connect(ui->goToBlockButton, &QPushButton::clicked, this, &EditorWindow::onClickedGoToBlockButton);
-    connect(ui->goToBlockSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &EditorWindow::onBlockSpinBoxValueChanged);
+    connect(ui->goToChunkButton, &QPushButton::clicked, this, &EditorWindow::onClickedGoToBlockButton);
+    connect(ui->goToChunkSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &EditorWindow::onBlockSpinBoxValueChanged);
     
     connect(ui->fileEdit, &QPlainTextEdit::modificationChanged, this, &EditorWindow::onTextEdited);
 
     connect(
-        ui->nextBlockButton, &QPushButton::clicked,
+        ui->nextChunkButton, &QPushButton::clicked,
 
         [this]() {
             loadBlock(currentBlock + 1);
@@ -60,7 +60,7 @@ EditorWindow::EditorWindow(QWidget *parent)
     );
 
     connect(
-        ui->previousBlockButton, &QPushButton::clicked,
+        ui->previousChunkButton, &QPushButton::clicked,
 
         [this]() {
             if (currentBlock > 0)
@@ -103,7 +103,7 @@ void EditorWindow::openPreferences()
 
 void EditorWindow::openFile()
 {
-    ui->goToBlockSpinBox->setValue(0);
+    ui->goToChunkSpinBox->setValue(0);
     currentBlock = 0;
 
     QFileDialog fileDialog(this);
@@ -123,14 +123,14 @@ void EditorWindow::openFile()
         }
         
         // File has been loaded, enable controls
-        ui->goToBlockSpinBox->setEnabled(true);
-        ui->goToBlockSpinBox->setValue(0); // First block/page
+        ui->goToChunkSpinBox->setEnabled(true);
+        ui->goToChunkSpinBox->setValue(0); // First chunk/page
         
-        ui->goToBlockButton->setEnabled(true);
-        ui->nextBlockButton->setEnabled(true);
-        ui->previousBlockButton->setEnabled(true);
+        ui->goToChunkButton->setEnabled(true);
+        ui->nextChunkButton->setEnabled(true);
+        ui->previousChunkButton->setEnabled(true);
         
-        loadBlock(currentBlock); // Go to the first block of the file
+        loadBlock(currentBlock); // Go to the first chunk of the file
     }
 }
 
@@ -146,14 +146,14 @@ void EditorWindow::openSaveAs()
 
 void EditorWindow::onClickedGoToBlockButton()
 {
-    loadBlock(ui->goToBlockSpinBox->value());
+    loadBlock(ui->goToChunkSpinBox->value());
 }
 
 void EditorWindow::onBlockSpinBoxValueChanged(int value)
 {
     qint64 fileIndex = getBlockSize() * value;
     qint64 fileSize = currentFile->size();
-    ui->goToBlockButton->setEnabled(fileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the go to block button
+    ui->goToChunkButton->setEnabled(fileIndex < fileSize); // Ensure you cannot load a chunk past EOF by disabling the go to chunk button
 }
 
 void EditorWindow::onFileReadStarted()
@@ -206,7 +206,7 @@ void EditorWindow::onFileWriteFinished()
     hasUnsavedChanges = false; // Changed have been saved
     setWindowTitle(QString("LFEditor [ %1 ]").arg(currentFile->fileName()));
     
-    // Reload the current block to see the changes made to the file
+    // Reload the current chunk to see the changes made to the file
     loadBlock(currentBlock);
 }
 
@@ -294,7 +294,7 @@ void EditorWindow::loadBytes(qint64 from, qint64 to)
     thread->start();
 }
 
-void EditorWindow::loadBlock(qint64 blockIndex)
+void EditorWindow::loadBlock(qint64 chunkIndex)
 {
     if (currentFile.isNull())
     {
@@ -304,7 +304,7 @@ void EditorWindow::loadBlock(qint64 blockIndex)
     if (hasUnsavedChanges)
     {
         QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Unsaved Changes",
-                                                                tr("You have unsaved changes in your current block, are you sure you want to load a new block?\n"),
+                                                                tr("You have unsaved changes in your current chunk, are you sure you want to load a new chunk?\n"),
                                                                 QMessageBox::No | QMessageBox::Yes,
                                                                 QMessageBox::No);
         if (resBtn == QMessageBox::No) {
@@ -312,17 +312,17 @@ void EditorWindow::loadBlock(qint64 blockIndex)
         }
     }
     
-    ui->goToBlockSpinBox->setValue(blockIndex);
-    currentBlock = blockIndex;
+    ui->goToChunkSpinBox->setValue(chunkIndex);
+    currentBlock = chunkIndex;
     
     PreferenceManager mgr = PreferenceManager::getInstance();
-    qint64 nextBlockFileIndex = getBlockSize() * (blockIndex + 1);
+    qint64 nextBlockFileIndex = getBlockSize() * (chunkIndex + 1);
     qint64 fileSize = currentFile->size();
-    ui->nextBlockButton->setEnabled(nextBlockFileIndex < fileSize); // Ensure you cannot load a block past EOF by disabling the next block button
-    ui->previousBlockButton->setEnabled(currentBlock > 0); // Disable the "previous block" button if we are on the first block
+    ui->nextChunkButton->setEnabled(nextBlockFileIndex < fileSize); // Ensure you cannot load a chunk past EOF by disabling the next chunk button
+    ui->previousChunkButton->setEnabled(currentBlock > 0); // Disable the "previous chunk" button if we are on the first chunk
     
-    qint64 blockByteCount = getBlockSize();
-    loadBytes(blockByteCount * blockIndex, blockByteCount * (blockIndex + 1));
+    qint64 chunkByteCount = getBlockSize();
+    loadBytes(chunkByteCount * chunkIndex, chunkByteCount * (chunkIndex + 1));
 }
 
 void EditorWindow::save(qint64 from)
@@ -342,8 +342,8 @@ void EditorWindow::save(qint64 from)
     
     connect(
                 thread, &QThread::started, worker, 
-                [worker, this, bytes = bytes, from = from, blockSize = getBlockSize(), simpleWrite = simpleWrite] { 
-                    worker->writeFile(currentFile.data(), from, bytes, blockSize, simpleWrite); 
+                [worker, this, bytes = bytes, from = from, chunkSize = getBlockSize(), simpleWrite = simpleWrite] { 
+                    worker->writeFile(currentFile.data(), from, bytes, chunkSize, simpleWrite); 
                 } 
     );
     
@@ -367,7 +367,7 @@ void EditorWindow::displayErrorDialog(const QString &title, const QString &descr
 qint64 EditorWindow::getBlockSize() const
 {
     PreferenceManager& mgr = PreferenceManager::getInstance();
-    return mgr.blockSize * mgr.byteSize;
+    return mgr.chunkSize * mgr.byteSize;
 }
 
 void EditorWindow::closeEvent(QCloseEvent *event)
@@ -375,7 +375,7 @@ void EditorWindow::closeEvent(QCloseEvent *event)
     if (hasUnsavedChanges)
     {
         QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Unsaved Changes",
-                                                                tr("You have unsaved changes in your current block, are you sure you want to exit?\n"),
+                                                                tr("You have unsaved changes in your current chunk, are you sure you want to exit?\n"),
                                                                 QMessageBox::No | QMessageBox::Yes,
                                                                 QMessageBox::No);
         if (resBtn != QMessageBox::Yes) {

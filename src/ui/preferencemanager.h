@@ -13,7 +13,7 @@ public:
     void loadPreferences();
     void savePreferences();
 
-    int blockSize;
+    int chunkSize;
     int wordWrapMode;
     int writeMode;
     int byteSizeIndex;

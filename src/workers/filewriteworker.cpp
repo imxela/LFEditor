@@ -65,7 +65,7 @@ void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 co
     }
 }
 
-void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint64 blockSize, bool simpleWrite)
+void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint64 chunkSize, bool simpleWrite)
 {
     // If simpleWrite is true, we do not need to delete removed characters from the file
     if (simpleWrite)
@@ -82,7 +82,7 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
             return;
         }
         
-        // Write new data to file block
+        // Write new data to file chunk
         if (file->write(bytes) < bytes.size())
         {
             QString desc("Failed to write to file '%1'.");
@@ -97,10 +97,10 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
         /* Complex Write */
         qDebug() << "Starting complex write";
         qDebug() << "bytes.size() is " << QString::number(bytes.size());
-        qDebug() << "blockSize is " << QString::number(blockSize);
+        qDebug() << "chunkSize is " << QString::number(chunkSize);
         qDebug() << "file->size() is " << QString::number(file->size());
         
-        // Step 1: Write the new block data to the file
+        // Step 1: Write the new chunk data to the file
         
         if (!file->seek(from))
         {
@@ -120,21 +120,21 @@ void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint
             return;
         }
         
-        // Step 2: If needed, move all data after the end of the old block to the end of the new block (this overwrites the deleted data)
-        //         The end of the new block is located at 'bytes.size()', and the end of the old block at 'blockSize'
+        // Step 2: If needed, move all data after the end of the old chunk to the end of the new chunk (this overwrites the deleted data)
+        //         The end of the new chunk is located at 'bytes.size()', and the end of the old chunk at 'chunkSize'
         
-        if (blockSize < file->size()) 
+        if (chunkSize < file->size()) 
         {
-            readFromWriteTo(from + blockSize, from + bytes.size(), blockSize - bytes.size()/*, &bytes*/, file);
+            readFromWriteTo(from + chunkSize, from + bytes.size(), chunkSize - bytes.size()/*, &bytes*/, file);
         }
         else
         {
-            qDebug() << "blockSize size is larger or same size as file, no moving of data required. ";
+            qDebug() << "chunkSize size is larger or same size as file, no moving of data required. ";
         }
         
         // Step 3: Resize the file to remove the dangling data at the end of the file since the real data has been copied & moved upwards in the file
         qint64 oldFileSize = file->size();
-        file->resize(file->size() - (blockSize - bytes.size()));
+        file->resize(file->size() - (chunkSize - bytes.size()));
         qDebug() << "Resized file from " << oldFileSize << " bytes to " << file->size() << "bytes.";
     }
 

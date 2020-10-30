@@ -22,7 +22,7 @@ void PreferenceManager::loadPreferences()
     qDebug() << "Config location: " << settings->fileName();
 
     // Set values
-    blockSize = settings->value("blockSize", 50).toInt();
+    chunkSize = settings->value("chunkSize", 50).toInt();
     wordWrapMode = settings->value("wordWrapMode", 0).toInt();
     writeMode = settings->value("writeMode", 0).toInt();
     byteSizeIndex = settings->value("byteSizeIndex", 1).toInt();
@@ -31,7 +31,7 @@ void PreferenceManager::loadPreferences()
 
 void PreferenceManager::savePreferences()
 {
-    settings->setValue("blockSize", blockSize);
+    settings->setValue("chunkSize", chunkSize);
     settings->setValue("wordWrapMode", wordWrapMode);
     settings->setValue("writeMode", writeMode);
     settings->setValue("byteSizeIndex", byteSizeIndex);

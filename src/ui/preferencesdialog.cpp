@@ -15,7 +15,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     connect(ui->cancelButton, &QPushButton::clicked, this, &PreferencesDialog::onClickedCancelButton);
 
     PreferenceManager& mgr = PreferenceManager::getInstance();
-    ui->blockSizeSpinBox->setValue(mgr.blockSize);
+    ui->chunkSizeSpinBox->setValue(mgr.chunkSize);
     ui->wrapModeComboBox->setCurrentIndex(mgr.wordWrapMode);
     ui->writeModeComboBox->setCurrentIndex(mgr.writeMode);
     ui->byteSizeComboBox->setCurrentIndex(mgr.byteSizeIndex);
@@ -56,11 +56,11 @@ void PreferencesDialog::onClickedSaveButton()
 {
     PreferenceManager& mgr = PreferenceManager::getInstance();
     
-    // If the block size has changed in any way, the current block has to be reloaded to reflect the changes
-    bool reloadBlock = mgr.blockSize != ui->blockSizeSpinBox->value() 
+    // If the chunk size has changed in any way, the current chunk has to be reloaded to reflect the changes
+    bool reloadBlock = mgr.chunkSize != ui->chunkSizeSpinBox->value() 
                     || mgr.byteSizeIndex != ui->byteSizeComboBox->currentIndex();
     
-    mgr.blockSize = ui->blockSizeSpinBox->value();
+    mgr.chunkSize = ui->chunkSizeSpinBox->value();
     mgr.wordWrapMode = ui->wrapModeComboBox->currentIndex();
     mgr.writeMode = ui->writeModeComboBox->currentIndex();
     mgr.byteSizeIndex = ui->byteSizeComboBox->currentIndex();

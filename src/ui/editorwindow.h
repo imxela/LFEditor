@@ -20,14 +20,14 @@ public:
     void closeEvent(QCloseEvent *event) override;
 
     void loadBytes(qint64 from, qint64 to);
-    void loadBlock(qint64 blockIndex);
+    void loadBlock(qint64 chunkIndex);
 
     void save(qint64 from);
     
     // Displays an error dialog to the user
     void displayErrorDialog(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
 
-    // Returns the amount of bytes in a single block according to the current preferences
+    // Returns the amount of bytes in a single chunk according to the current preferences
     qint64 getBlockSize() const;
     
 private:

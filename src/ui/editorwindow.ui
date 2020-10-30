@@ -72,30 +72,30 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QPushButton" name="previousBlockButton">
+       <widget class="QPushButton" name="previousChunkButton">
         <property name="text">
-         <string>&lt;- Previous Block</string>
+         <string>&lt;- Previous Chunk</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="goToBlockSpinBox">
+       <widget class="QSpinBox" name="goToChunkSpinBox">
         <property name="maximum">
          <number>999999999</number>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="goToBlockButton">
+       <widget class="QPushButton" name="goToChunkButton">
         <property name="text">
-         <string>Go to Block</string>
+         <string>Go to Chunk</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="nextBlockButton">
+       <widget class="QPushButton" name="nextChunkButton">
         <property name="text">
-         <string>Next Block -&gt;</string>
+         <string>Next Chunk -&gt;</string>
         </property>
        </widget>
       </item>
