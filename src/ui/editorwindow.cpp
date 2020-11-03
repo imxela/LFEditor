@@ -394,6 +394,8 @@ qint64 EditorWindow::getBlockSize() const
 void EditorWindow::addRecentFile(const QString& fileName)
 {
     // Note: Does using 'new' like this cause a memory leak, or is deletion managed by Qt?
+    //       Should be fine, the deletion of the action is managed by the parent,
+    //       which is set to 'ui->menuRecent' here below.
     QAction* fileAction = new QAction(fileName, ui->menuRecent);
     
     // Make the action load the file it is associated with when clicked
@@ -433,6 +435,8 @@ void EditorWindow::addRecentFile(const QString& fileName)
 
 void EditorWindow::closeEvent(QCloseEvent *event)
 {
+    PreferenceManager::getInstance().savePreferences();
+    
     if (hasUnsavedChanges)
     {
         QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Unsaved Changes",
@@ -442,11 +446,6 @@ void EditorWindow::closeEvent(QCloseEvent *event)
         if (resBtn != QMessageBox::Yes) {
             event->ignore();
         } else {
-            // Todo: Preferences are only saved here if the user has unsaved changes.
-            //       Preferences need to be saved in every case where the program closes,
-            //       not only if there's unsaved changes.
-            PreferenceManager::getInstance().savePreferences();
-            
             event->accept();
         }
     }
