@@ -11,7 +11,7 @@ The current version (v0.1.0-alpha as of writing this) lacks some basic functiona
 
 The Qt version used for this program version is 5.15.1. You can download the source as [.zip](https://github.com/qt/qt5/archive/v5.15.1.zip) or [.tar.gz](https://github.com/qt/qt5/archive/v5.15.1.tar.gz) and compile and link the Qt binaries yourself if you want to, as per the [Qt license](https://doc.qt.io/qt-5/lgpl.html) paragraph (d) of section (4).
 
-If the above links do not work, you contact me on my email, which is _myfullname_ (my name can be found in the license file) _@gmail.com_, and I will send you a copy of the Qt source code.
+If the above links do not work, you contact me on my email, _alexkarlin.dev@gmail.com_, and I will send you a copy of the Qt source code.
 
 The only tested platform so far is Windows, and the LFEditor releases contain both 64- and 32-bit executables. The program can be run from anywhere and does not use an installer. If you prefer building directly from source, the simplest way to do so would probably be to build the project from the QtCreator IDE.
 
