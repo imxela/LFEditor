@@ -72,6 +72,21 @@ EditorWindow::EditorWindow(QWidget *parent)
 
     onPreferencesChanged(false); // We have to manually simulate a preference change here to initialize them
     loadBlock(0); // Does some initialization
+    
+    qDebug() << "Command-line arguments:";
+    for (int i = 0; i < QCoreApplication::arguments().count(); i++)
+    {
+        QString s = QString::number(i+1) + ") " + QCoreApplication::arguments().at(i);
+        qDebug() << '\t' << s;
+    }
+   
+    // Load file supplied as command-line argument
+    if (QCoreApplication::arguments().count() >= 2)
+    {
+        QString fileArg = QCoreApplication::arguments().at(1);
+        if (!fileArg.isEmpty())
+            loadFile(fileArg);
+    }
 }
 
 EditorWindow::~EditorWindow()
