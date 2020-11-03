@@ -9,6 +9,7 @@
 #include <QSignalMapper>
 #include <QSharedPointer>
 #include <QSpinBox>
+#include <QProcess>
 
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
@@ -119,11 +120,20 @@ void EditorWindow::openPreferences()
 void EditorWindow::openFile()
 {
     QFileDialog fileDialog(this);
-    fileDialog.setFileMode(QFileDialog::FileMode::AnyFile);
+    fileDialog.setFileMode(QFileDialog::FileMode::ExistingFiles);
 
     if (fileDialog.exec())
     {
-        loadFile(fileDialog.selectedFiles()[0]);
+        // If several files are selected, open all but the first one in new sessions
+        if (fileDialog.selectedFiles().count() > 1)
+        {
+            // Todo: Instead if opening in a new session, create file tabs in a single session
+            QList<QString> selection = fileDialog.selectedFiles();
+            QList<QString> externalSessionSelections = QList<QString>(selection.begin() + 1, selection.end());
+            startEditorSession(externalSessionSelections);
+        }
+        
+        loadFile(fileDialog.selectedFiles().at(0));
     }
 }
 
@@ -446,6 +456,14 @@ void EditorWindow::addRecentFile(const QString& fileName)
         recentFileStrings.append(ui->menuRecent->actions()[i]->text());
         
     mgr.recentFiles = recentFileStrings;
+}
+
+void EditorWindow::startEditorSession(const QList<QString>& args)
+{
+    if (!QProcess::startDetached(QCoreApplication::arguments().at(0), args))
+    {
+        displayErrorDialog("LFEditor Launch Error", "Failed to start a new session of LFEditor", "Cannot get error information from detached processes", 0);
+    }
 }
 
 void EditorWindow::closeEvent(QCloseEvent *event)
