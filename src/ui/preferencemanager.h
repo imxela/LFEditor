@@ -18,6 +18,7 @@ public:
     int writeMode;
     int byteSizeIndex;
     uint byteSize;
+    QList<QString> recentFiles;
 
 private:
     PreferenceManager();

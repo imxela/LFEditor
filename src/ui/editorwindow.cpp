@@ -103,34 +103,12 @@ void EditorWindow::openPreferences()
 
 void EditorWindow::openFile()
 {
-    ui->goToChunkSpinBox->setValue(0);
-    currentBlock = 0;
-
     QFileDialog fileDialog(this);
     fileDialog.setFileMode(QFileDialog::FileMode::AnyFile);
 
     if (fileDialog.exec())
     {
-        QString fileName = fileDialog.selectedFiles()[0];
-        setWindowTitle(QString("LFEditor [ %1 ]").arg(fileName));
-
-        currentFile = QSharedPointer<QFile>(new QFile(fileName));
-        if (!currentFile->open(QIODevice::ReadWrite))
-        {
-            qDebug() << "Failed to open file '" << fileName << "': " << currentFile->error();
-            QMessageBox::critical(this, "File Error", QString("Failed to open file '%l'.\nReason: %l").arg(fileName, currentFile->error()));
-            return;
-        }
-        
-        // File has been loaded, enable controls
-        ui->goToChunkSpinBox->setEnabled(true);
-        ui->goToChunkSpinBox->setValue(0); // First chunk/page
-        
-        ui->goToChunkButton->setEnabled(true);
-        ui->nextChunkButton->setEnabled(true);
-        ui->previousChunkButton->setEnabled(true);
-        
-        loadBlock(currentBlock); // Go to the first chunk of the file
+        loadFile(fileDialog.selectedFiles()[0]);
     }
 }
 
@@ -267,10 +245,53 @@ void EditorWindow::onPreferencesChanged(bool requireReload)
     
     ui->fileEdit->setWordWrapMode(wordWrap);
     
+    for (int i = 0; i < mgr.recentFiles.count(); i++)
+    {
+        QAction* fileAction = new QAction(mgr.recentFiles[i], ui->menuRecent);
+        fileAction->connect(fileAction, &QAction::triggered, this, [this, fileName = fileAction->text()] { this->loadFile(fileName); } );
+        ui->menuRecent->addAction(fileAction);
+    }
+    
     if (requireReload)
     {
         loadBlock(currentBlock);
     }
+}
+
+void EditorWindow::loadFile(const QString &fileName)
+{
+    ui->goToChunkSpinBox->setValue(0);
+    currentBlock = 0;
+    
+    setWindowTitle(QString("LFEditor [ %1 ]").arg(fileName));
+
+    currentFile = QSharedPointer<QFile>(new QFile(fileName));
+    if (!currentFile->open(QIODevice::ReadWrite))
+    {
+        qDebug() << "Failed to open file '" << fileName << "': " << currentFile->error();
+        QMessageBox::critical(this, "File Error", QString("Failed to open file '%l'.\nReason: %l").arg(fileName, currentFile->error()));
+        return;
+    }
+        
+    // File has been loaded, enable controls
+    ui->goToChunkSpinBox->setEnabled(true);
+    ui->goToChunkSpinBox->setValue(0); // First chunk/page
+    
+    ui->goToChunkButton->setEnabled(true);
+    ui->nextChunkButton->setEnabled(true);
+    ui->previousChunkButton->setEnabled(true);
+    
+    addRecentFile(fileName);
+    
+    loadBlock(currentBlock); // Go to the first chunk of the file
+    
+    // File has been loaded, enable controls
+    ui->goToChunkSpinBox->setEnabled(true);
+    ui->goToChunkSpinBox->setValue(0); // First chunk/page
+    
+    ui->goToChunkButton->setEnabled(true);
+    ui->nextChunkButton->setEnabled(true);
+    ui->previousChunkButton->setEnabled(true);
 }
 
 void EditorWindow::loadBytes(qint64 from, qint64 to)
@@ -370,6 +391,46 @@ qint64 EditorWindow::getBlockSize() const
     return mgr.chunkSize * mgr.byteSize;
 }
 
+void EditorWindow::addRecentFile(const QString& fileName)
+{
+    // Note: Does using 'new' like this cause a memory leak, or is deletion managed by Qt?
+    QAction* fileAction = new QAction(fileName, ui->menuRecent);
+    
+    // Make the action load the file it is associated with when clicked
+    fileAction->connect(fileAction, &QAction::triggered, this, [this, fileName] { this->loadFile(fileName); } );
+    
+    // Only the most recent 5 files are shown in the list, remove last if exceeding
+    if (ui->menuRecent->actions().count() > 5)
+    {
+        ui->menuRecent->removeAction(ui->menuRecent->actions().last());
+    }
+    
+    // Check if the file already exists in the list, if it does,
+    // remove it and replace it with the new one on top of the list.
+    for (int i = 0; i < ui->menuRecent->actions().count(); i++)
+    {
+        if (ui->menuRecent->actions()[i]->text() == fileAction->text())
+        {
+            ui->menuRecent->removeAction(ui->menuRecent->actions()[i]);
+        }
+    }
+    
+    // Add file to recent menu
+    // If there are no recent files except the current one, we do not need to insert in front
+    if (ui->menuRecent->actions().count() == 0)
+        ui->menuRecent->addAction(fileAction);
+    else
+        ui->menuRecent->insertAction(ui->menuRecent->actions().first(), fileAction);
+    
+    // Save the recent files menu to preferences so they're saved between sessions
+    PreferenceManager& mgr = PreferenceManager::getInstance();
+    QList<QString> recentFileStrings = QList<QString>();
+    for (int i = 0; i < ui->menuRecent->actions().count(); i++)
+        recentFileStrings.append(ui->menuRecent->actions()[i]->text());
+        
+    mgr.recentFiles = recentFileStrings;
+}
+
 void EditorWindow::closeEvent(QCloseEvent *event)
 {
     if (hasUnsavedChanges)
@@ -381,8 +442,11 @@ void EditorWindow::closeEvent(QCloseEvent *event)
         if (resBtn != QMessageBox::Yes) {
             event->ignore();
         } else {
+            // Todo: Preferences are only saved here if the user has unsaved changes.
+            //       Preferences need to be saved in every case where the program closes,
+            //       not only if there's unsaved changes.
             PreferenceManager::getInstance().savePreferences();
-        
+            
             event->accept();
         }
     }

@@ -122,7 +122,13 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuRecent">
+     <property name="title">
+      <string>Recent</string>
+     </property>
+    </widget>
     <addaction name="actionOpen"/>
+    <addaction name="menuRecent"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As_N_A"/>
     <addaction name="actionSave_Block_As_N_A"/>
@@ -195,6 +201,11 @@
    </property>
    <property name="text">
     <string>Save Block As... (N/A)</string>
+   </property>
+  </action>
+  <action name="actionFF">
+   <property name="text">
+    <string>FF</string>
    </property>
   </action>
  </widget>

@@ -19,6 +19,7 @@ public:
 
     void closeEvent(QCloseEvent *event) override;
 
+    void loadFile(const QString& fileName);
     void loadBytes(qint64 from, qint64 to);
     void loadBlock(qint64 chunkIndex);
 
@@ -38,6 +39,9 @@ private:
     
     bool simpleWrite;
     bool hasUnsavedChanges;
+    
+    // Adds a string value to the recent tab/list on the menubar
+    void addRecentFile(const QString& fileName);
 
 private slots:
     void openAbout();
