@@ -102,9 +102,11 @@ void EditorWindow::openAbout()
 {
     QMessageBox::about(this, "About LFEditor", "<b>LFEditor</b> is a Large-File editor. It specializes in viewing and (not yet) editing large files. "
                                                "Most other text editors are unable to open large files at all, but this software can open files of any size. "
-                                               "LFEditor is created by Alex Karlsson Lindén and is released under the <b>LGPLv3</b> license. "
+                                               "LFEditor is created by <a href=\"https://github.com/alexkarlin\"> @alexkarlin </a> and is released under the <b>LGPLv3</b> license. "
                                                "For more info regarding the license, read <a href=\"https://www.gnu.org/licenses/lgpl-3.0.txt\">this</a>. "
-                                               "If you wish to view the source code of this software, you can do so <a href=\"https://github.com/alexkarlin/lfeditor\">here</a>.");
+                                               "If you wish to view the source code of this software, you can do so <a href=\"https://github.com/alexkarlin/lfeditor\">here</a>."
+                                               "<br><br>"
+                                               "If you wish to contact me, you can do so on my email: <a href=\"mailto:alexkarlin.dev@gmail.com\"> alexkarlin.dev@gmail.com </a>");
     QMessageBox::aboutQt(this);
 }
 
