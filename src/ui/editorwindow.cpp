@@ -106,7 +106,7 @@ void EditorWindow::openAbout()
                                                "For more info regarding the license, read <a href=\"https://www.gnu.org/licenses/lgpl-3.0.txt\">this</a>. "
                                                "If you wish to view the source code of this software, you can do so <a href=\"https://github.com/alexkarlin/lfeditor\">here</a>."
                                                "<br><br>"
-                                               "If you wish to contact me, you can do so on my email: <a href=\"mailto:alexkarlin.dev@gmail.com\"> alexkarlin.dev@gmail.com </a>");
+                                               "If you wish to contact me, you can do so on my email, which is my GitHub username followed by <a href=\"mailto:.dev@gmail.com\"> .dev@gmail.com </a>");
     QMessageBox::aboutQt(this);
 }
 
