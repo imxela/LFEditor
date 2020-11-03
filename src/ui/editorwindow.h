@@ -43,8 +43,11 @@ private:
     // Adds a string value to the recent tab/list on the menubar
     void addRecentFile(const QString& fileName);
     
-    // Starts a new LFEditor session with the supplied command-line arguments
+    void openRecentFile(const QString& fileName);
+    
+    // Starts a new LFEditor session with the supplied command-line argument(s)
     void startEditorSession(const QList<QString>& args);
+    void startEditorSession(const QString& arg);
 
 private slots:
     void openAbout();

@@ -273,7 +273,7 @@ void EditorWindow::onPreferencesChanged(bool requireReload)
     for (int i = 0; i < mgr.recentFiles.count(); i++)
     {
         QAction* fileAction = new QAction(mgr.recentFiles[i], ui->menuRecent);
-        fileAction->connect(fileAction, &QAction::triggered, this, [this, fileName = fileAction->text()] { this->loadFile(fileName); } );
+        fileAction->connect(fileAction, &QAction::triggered, this, [this, fileName = fileAction->text()] { this->openRecentFile(fileName); } );
         ui->menuRecent->addAction(fileAction);
     }
     
@@ -458,9 +458,29 @@ void EditorWindow::addRecentFile(const QString& fileName)
     mgr.recentFiles = recentFileStrings;
 }
 
+void EditorWindow::openRecentFile(const QString& fileName)
+{
+    // If control is pressed, open 'fileName' in a new session
+    if (QGuiApplication::keyboardModifiers() & Qt::KeyboardModifier::ControlModifier)
+        startEditorSession(fileName);
+    else
+        loadFile(fileName);
+}
+
 void EditorWindow::startEditorSession(const QList<QString>& args)
 {
     if (!QProcess::startDetached(QCoreApplication::arguments().at(0), args))
+    {
+        displayErrorDialog("LFEditor Launch Error", "Failed to start a new session of LFEditor", "Cannot get error information from detached processes", 0);
+    }
+}
+
+void EditorWindow::startEditorSession(const QString& arg)
+{
+    QList<QString> list = QList<QString>();
+    list.append(arg);
+    
+    if (!QProcess::startDetached(QCoreApplication::arguments().at(0), list))
     {
         displayErrorDialog("LFEditor Launch Error", "Failed to start a new session of LFEditor", "Cannot get error information from detached processes", 0);
     }
