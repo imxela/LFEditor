@@ -21,20 +21,21 @@ public:
 
     void loadFile(const QString& fileName);
     void loadBytes(qint64 from, qint64 to);
-    void loadBlock(qint64 chunkIndex);
-
+    void loadChunk(qint64 chunkIndex);
+    
     void save(qint64 from);
+    void saveChunk(const QString& fileName);    
     
     // Displays an error dialog to the user
     void displayErrorDialog(const QString& title, const QString& description, const QString& errorString, qint64 errorCode);
 
     // Returns the amount of bytes in a single chunk according to the current preferences
-    qint64 getBlockSize() const;
+    qint64 getChunkSize() const;
     
 private:
     Ui::EditorWindow *ui;
 
-    uint64_t currentBlock;
+    uint64_t currentChunk;
     QSharedPointer<QFile> currentFile;
     
     bool simpleWrite;
@@ -55,9 +56,11 @@ private slots:
     void openFile();
     void openSave();
     void openSaveAs();
+    
+    void openSaveChunkAs();
 
-    void onClickedGoToBlockButton();
-    void onBlockSpinBoxValueChanged(int value);
+    void onClickedGoToChunkButton();
+    void onChunkSpinBoxValueChanged(int value);
 
     void onFileReadStarted();
     void onFileReadFinished(qint32 bytesRead, QByteArray* bytes);

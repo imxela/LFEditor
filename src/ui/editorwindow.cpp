@@ -21,7 +21,7 @@
 
 EditorWindow::EditorWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::EditorWindow), currentBlock(0)
+    , ui(new Ui::EditorWindow), currentChunk(0)
 {
     ui->setupUi(this);
 
@@ -40,15 +40,19 @@ EditorWindow::EditorWindow(QWidget *parent)
     ui->goToChunkButton->setEnabled(false);
     ui->nextChunkButton->setEnabled(false);
     ui->previousChunkButton->setEnabled(false);
+    
+    // Also disable saving the current chunk
+    ui->actionSaveChunkAs->setEnabled(false);
 
     connect(ui->actionExit, &QAction::triggered, this, [this] { this->close(); } );
     connect(ui->actionAbout, &QAction::triggered, this, &EditorWindow::openAbout);
     connect(ui->actionPreferences, &QAction::triggered, this, &EditorWindow::openPreferences);
     connect(ui->actionOpen, &QAction::triggered, this, &EditorWindow::openFile);
     connect(ui->actionSave, &QAction::triggered, this, &EditorWindow::openSave);
+    connect(ui->actionSaveChunkAs, &QAction::triggered, this, &EditorWindow::openSaveChunkAs);
 
-    connect(ui->goToChunkButton, &QPushButton::clicked, this, &EditorWindow::onClickedGoToBlockButton);
-    connect(ui->goToChunkSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &EditorWindow::onBlockSpinBoxValueChanged);
+    connect(ui->goToChunkButton, &QPushButton::clicked, this, &EditorWindow::onClickedGoToChunkButton);
+    connect(ui->goToChunkSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &EditorWindow::onChunkSpinBoxValueChanged);
     
     connect(ui->fileEdit, &QPlainTextEdit::modificationChanged, this, &EditorWindow::onTextEdited);
 
@@ -56,7 +60,7 @@ EditorWindow::EditorWindow(QWidget *parent)
         ui->nextChunkButton, &QPushButton::clicked,
 
         [this]() {
-            loadBlock(currentBlock + 1);
+            loadChunk(currentChunk + 1);
         }
     );
 
@@ -64,15 +68,15 @@ EditorWindow::EditorWindow(QWidget *parent)
         ui->previousChunkButton, &QPushButton::clicked,
 
         [this]() {
-            if (currentBlock > 0)
-                loadBlock(currentBlock - 1);
+            if (currentChunk > 0)
+                loadChunk(currentChunk - 1);
         }
     );
 
     ui->fileProgress->setVisible(false);
 
     onPreferencesChanged(false); // We have to manually simulate a preference change here to initialize them
-    loadBlock(0); // Does some initialization
+    loadChunk(0); // Does some initialization
     
     qDebug() << "Command-line arguments:";
     for (int i = 0; i < QCoreApplication::arguments().count(); i++)
@@ -141,7 +145,7 @@ void EditorWindow::openFile()
 
 void EditorWindow::openSave()
 {
-    save(getBlockSize() * currentBlock);
+    save(getChunkSize() * currentChunk);
 }
 
 void EditorWindow::openSaveAs()
@@ -149,14 +153,29 @@ void EditorWindow::openSaveAs()
 
 }
 
-void EditorWindow::onClickedGoToBlockButton()
+void EditorWindow::openSaveChunkAs()
 {
-    loadBlock(ui->goToChunkSpinBox->value());
+    QFileDialog fileDialog(this);
+    fileDialog.setFileMode(QFileDialog::AnyFile);
+    
+    if (fileDialog.exec())
+    {
+        QFile file(fileDialog.selectedFiles().at(0));
+        if (!file.exists())
+            file.open(QIODevice::ReadWrite);
+                    
+        saveChunk(fileDialog.selectedFiles().at(0));
+    }
 }
 
-void EditorWindow::onBlockSpinBoxValueChanged(int value)
+void EditorWindow::onClickedGoToChunkButton()
 {
-    qint64 fileIndex = getBlockSize() * value;
+    loadChunk(ui->goToChunkSpinBox->value());
+}
+
+void EditorWindow::onChunkSpinBoxValueChanged(int value)
+{
+    qint64 fileIndex = getChunkSize() * value;
     qint64 fileSize = currentFile->size();
     ui->goToChunkButton->setEnabled(fileIndex < fileSize); // Ensure you cannot load a chunk past EOF by disabling the go to chunk button
 }
@@ -212,7 +231,7 @@ void EditorWindow::onFileWriteFinished()
     setWindowTitle(QString("LFEditor [ %1 ]").arg(currentFile->fileName()));
     
     // Reload the current chunk to see the changes made to the file
-    loadBlock(currentBlock);
+    loadChunk(currentChunk);
 }
 
 void EditorWindow::onFileWriteError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
@@ -281,14 +300,14 @@ void EditorWindow::onPreferencesChanged(bool requireReload)
     
     if (requireReload)
     {
-        loadBlock(currentBlock);
+        loadChunk(currentChunk);
     }
 }
 
 void EditorWindow::loadFile(const QString &fileName)
 {
     ui->goToChunkSpinBox->setValue(0);
-    currentBlock = 0;
+    currentChunk= 0;
     
     setWindowTitle(QString("LFEditor [ %1 ]").arg(fileName));
 
@@ -308,9 +327,11 @@ void EditorWindow::loadFile(const QString &fileName)
     ui->nextChunkButton->setEnabled(true);
     ui->previousChunkButton->setEnabled(true);
     
+    ui->actionSaveChunkAs->setEnabled(true);
+    
     addRecentFile(fileName);
     
-    loadBlock(currentBlock); // Go to the first chunk of the file
+    loadChunk(currentChunk); // Go to the first chunk of the file
     
     // File has been loaded, enable controls
     ui->goToChunkSpinBox->setEnabled(true);
@@ -342,7 +363,7 @@ void EditorWindow::loadBytes(qint64 from, qint64 to)
     thread->start();
 }
 
-void EditorWindow::loadBlock(qint64 chunkIndex)
+void EditorWindow::loadChunk(qint64 chunkIndex)
 {
     if (currentFile.isNull())
     {
@@ -361,15 +382,15 @@ void EditorWindow::loadBlock(qint64 chunkIndex)
     }
     
     ui->goToChunkSpinBox->setValue(chunkIndex);
-    currentBlock = chunkIndex;
+    currentChunk= chunkIndex;
     
     PreferenceManager mgr = PreferenceManager::getInstance();
-    qint64 nextBlockFileIndex = getBlockSize() * (chunkIndex + 1);
+    qint64 nextChunkFileIndex = getChunkSize() * (chunkIndex + 1);
     qint64 fileSize = currentFile->size();
-    ui->nextChunkButton->setEnabled(nextBlockFileIndex < fileSize); // Ensure you cannot load a chunk past EOF by disabling the next chunk button
-    ui->previousChunkButton->setEnabled(currentBlock > 0); // Disable the "previous chunk" button if we are on the first chunk
+    ui->nextChunkButton->setEnabled(nextChunkFileIndex < fileSize); // Ensure you cannot load a chunk past EOF by disabling the next chunk button
+    ui->previousChunkButton->setEnabled(currentChunk> 0); // Disable the "previous chunk" button if we are on the first chunk
     
-    qint64 chunkByteCount = getBlockSize();
+    qint64 chunkByteCount = getChunkSize();
     loadBytes(chunkByteCount * chunkIndex, chunkByteCount * (chunkIndex + 1));
 }
 
@@ -390,8 +411,41 @@ void EditorWindow::save(qint64 from)
     
     connect(
                 thread, &QThread::started, worker, 
-                [worker, this, bytes = bytes, from = from, chunkSize = getBlockSize(), simpleWrite = simpleWrite] { 
+                [worker, this, bytes = bytes, from = from, chunkSize = getChunkSize(), simpleWrite = simpleWrite] { 
                     worker->writeFile(currentFile.data(), from, bytes, chunkSize, simpleWrite); 
+                } 
+    );
+    
+    connect(thread, &QThread::finished, thread, &FileWriteWorker::deleteLater);
+    connect(worker, &FileWriteWorker::readyForDeletion, worker, &FileWriteWorker::deleteLater);
+
+    onFileWriteStarted();
+
+    thread->start();
+}
+
+void EditorWindow::saveChunk(const QString &fileName)
+{
+    ui->fileProgress->setVisible(true);
+    ui->fileProgress->reset();
+
+    QThread* thread = new QThread(this);
+    FileWriteWorker* worker = new FileWriteWorker();
+
+    worker->moveToThread(thread);
+
+    connect(worker, &FileWriteWorker::finished, this, &EditorWindow::onFileWriteFinished);
+    connect(worker, &FileWriteWorker::error, this, &EditorWindow::onFileWriteError);
+    
+    // Note: Does this run out of scope once this function has finished, or does it ignore that if it has references still?
+    QSharedPointer<QFile> chunkFile = QSharedPointer<QFile>(new QFile(fileName));
+    
+    QByteArray bytes(ui->fileEdit->toPlainText().toUtf8());
+    
+    connect(
+                thread, &QThread::started, worker, 
+                [worker, chunkFile, bytes = bytes, from = 0, chunkSize = getChunkSize()] { 
+                    worker->writeFile(chunkFile.data(), from, bytes, chunkSize, true); 
                 } 
     );
     
@@ -412,7 +466,7 @@ void EditorWindow::displayErrorDialog(const QString &title, const QString &descr
     QMessageBox::critical(this, title, text);
 }
 
-qint64 EditorWindow::getBlockSize() const
+qint64 EditorWindow::getChunkSize() const
 {
     PreferenceManager& mgr = PreferenceManager::getInstance();
     return mgr.chunkSize * mgr.byteSize;

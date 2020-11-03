@@ -131,7 +131,7 @@
     <addaction name="menuRecent"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As_N_A"/>
-    <addaction name="actionSave_Block_As_N_A"/>
+    <addaction name="actionSaveChunkAs"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
@@ -195,12 +195,12 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionSave_Block_As_N_A">
+  <action name="actionSaveChunkAs">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save Block As... (N/A)</string>
+    <string>Save Chunk As...</string>
    </property>
   </action>
   <action name="actionFF">

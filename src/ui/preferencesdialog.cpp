@@ -57,7 +57,7 @@ void PreferencesDialog::onClickedSaveButton()
     PreferenceManager& mgr = PreferenceManager::getInstance();
     
     // If the chunk size has changed in any way, the current chunk has to be reloaded to reflect the changes
-    bool reloadBlock = mgr.chunkSize != ui->chunkSizeSpinBox->value() 
+    bool reloadChunk = mgr.chunkSize != ui->chunkSizeSpinBox->value() 
                     || mgr.byteSizeIndex != ui->byteSizeComboBox->currentIndex();
     
     mgr.chunkSize = ui->chunkSizeSpinBox->value();
@@ -68,7 +68,7 @@ void PreferencesDialog::onClickedSaveButton()
     
     mgr.savePreferences();
     
-    emit onPreferencesChanged(reloadBlock);
+    emit onPreferencesChanged(reloadChunk);
 
     close();
 }

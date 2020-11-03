@@ -67,11 +67,15 @@ void FileWriteWorker::readFromWriteTo(qint64 readFrom, qint64 writeTo, qint64 co
 
 void FileWriteWorker::writeFile(QFile* file, qint64 from, QByteArray bytes, qint64 chunkSize, bool simpleWrite)
 {
+    if (!file->isOpen())
+        file->open(QIODevice::ReadWrite);
+    
     // If simpleWrite is true, we do not need to delete removed characters from the file
     if (simpleWrite)
     {
         /* Simple Write */
         qDebug() << "Starting simple write!";
+        qDebug() << file->fileName();
         
         if (!file->seek(from))
         {
