@@ -183,6 +183,7 @@ void EditorWindow::onChunkSpinBoxValueChanged(int value)
 void EditorWindow::onFileReadStarted()
 {
     qDebug() << "fileReadStarted()";
+    ui->statusbar->showMessage("Loading file, please wait. LFEditor might stop responding for an extended period of time, depending on chunk size. Please be patient.");
     ui->fileProgress->setVisible(true);
     ui->fileProgress->reset();
     ui->fileEdit->clear();
@@ -209,6 +210,7 @@ void EditorWindow::onFileReadFinished(qint32 bytesRead, QByteArray* bytes)
 
     qDebug() << "File read finished!";
     ui->fileProgress->setVisible(false);
+    ui->statusbar->clearMessage();
 }
 
 void EditorWindow::onFileReadError(const QString& title, const QString& description, const QString& errorString, qint64 errorCode)
