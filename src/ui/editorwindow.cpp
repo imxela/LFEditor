@@ -185,7 +185,9 @@ void EditorWindow::onFileReadStarted()
     qDebug() << "fileReadStarted()";
     ui->fileProgress->setVisible(true);
     ui->fileProgress->reset();
-    ui->fileEdit->setPlaceholderText("Loading file, please wait...");
+    ui->fileEdit->setPlaceholderText("Loading file, please wait.\n\n"
+                                     "Depending on the selected chunk size, this could take a while.\n"
+                                     "LFEditor might stop responding while loading. Please be patient.");
 }
 
 void EditorWindow::onFileReadFinished(qint32 bytesRead, QByteArray* bytes)
