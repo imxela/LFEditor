@@ -1,7 +1,7 @@
 # LFEditor
 LFEditor is a work-in-progress **L**arge-**F**ile **Editor** written in C++ using the Qt framework.
 
-[LICENSE](https://github.com/alexkarlin/LFEditor/blob/master/LICENSE.md) | [RELEASES](https://github.com/alexkarlin/LFEditor/releases)
+[LICENSE](https://github.com/imxela/LFEditor/blob/master/LICENSE.md) | [RELEASES](https://github.com/imxela/LFEditor/releases)
 
 ---
 
